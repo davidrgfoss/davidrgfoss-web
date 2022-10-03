@@ -1,0 +1,26 @@
+---
+sidebar_position: 2
+---
+
+# Instalar Guest Additions en Debian
+
+Hoy veremos como instalar los drivers de **VirtualBox** para una maquina virtual donde tengamos instalado la distribución "Debian" sin entorno gráfico. Este paquete llamado "**Guest Additions**" nos permiten aprovechar funcionalidades de VirtualBox y mejorar el rendimiento de la maquina virtual, añadiendo funcionalidades y drivers al sistema. Vamos a partir de la base que supone tener una maquina virtual con la distribución "Debian 9.6 64 Bits" instalada sin entorno gráfico.
+
+Primero introduciremos el CD de la "_Guest Additions_" desde la barra superior en la ventana de la maquina virtual, se haría clic en "_Dispositivos > Insertar imagen de CD de las "Guest Additions_"...". Una vez introducido la imagen del CD, entraremos como el usuario "_root_" para poder tener permisos de administrador e introduciremos los siguientes comandos.
+
+```jsx
+apt update && apt install linux-headers-amd64 make gcc perl -y
+mount /dev/sr0 /media/cdrom0
+mount -o remount,ro,exec /dev/sr0
+/media/cdrom/VboxLinuxAdditions.run
+umount /dev/sr0
+reboot
+```
+
+Una vez hayamos introducido los anteriores comandos, reiniciamos la maquina ya estarán instalada y configurada las "_Guest Additions_" podremos comprobar los módulos añadido a nuestro sistema con el siguiente comando:
+
+```jsx
+lsmod | grep "vbox"
+```
+
+Este tutorial puede ser encontrado en bastantes paginas web, aunque es cierto que hay distintas formas de realizarlo. Espero que esto os haya servido de ayuda.
