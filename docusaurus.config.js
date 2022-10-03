@@ -13,7 +13,7 @@ const config = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'gitlab/davidrg', // Usually your GitHub org/user name.
+  organizationName: 'gitub/davidrgfoss', // Usually your GitHub org/user name.
   projectName: 'Davidrg FOSS', // Usually your repo name.
 
   presets: [
@@ -24,7 +24,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://www.gitlab.com/davidrg/davidrgfoss/-/blob/main/',
+          editUrl: 'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
         },
@@ -32,7 +32,7 @@ const config = {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://gitlab.com/davidrg/davidrgfoss/-/blob/main/',
+            'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -74,8 +74,8 @@ const config = {
           },
           {to: '/blog', label: 'Blog', position: 'left'},
           {
-            href: 'https://gitlab.com/davidrg',
-            label: 'GitLab',
+            href: 'https://github.com/davidrgfoss',
+            label: 'GitHub',
             position: 'right',
           },
         ],
