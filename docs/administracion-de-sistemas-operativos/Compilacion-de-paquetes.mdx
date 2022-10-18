@@ -1,0 +1,96 @@
+---
+sidebar_position: 3
+---
+
+# Compilacion de un programa
+
+## Requisitos/recomendaciones
+
+Para realizar esta tarea voy a usar una distribución basada en **"Debian"** llamada **"POP OS"**
+
+## Introducción
+
+Este será un artículo corto, ya que veo innecesario explicar de una forma demasiado larga o detallada algo que podremos encontrar fácilmente en la red, intentaré ser algo más específico y breve. Aquí veremos como se puede compilar un paquete escrito en lenguaje de programación **“C”** con el compilador ***“gcc”***.
+
+## ¿Que es compilar?
+
+Antes de empezar a compilar el programa explicaré brevemente en qué consiste eso que llamamos compilar. Cuando escribimos un programa en **“C”** es necesario transformar el código a un lenguaje entendible para la máquina, de forma resumida transformará nuestro fichero que está en formato ***“.c”*** a un formato ***“.o”*** que será convertido en un ejecutable para el usuario y el sistema, que en este caso será ***“Linux”***. Este proceso se compone de diferentes pasos, podemos realizar un pequeño ejemplo de funcionamiento resumido en los siguientes pasos.
+
+1. Ejecutamos el compilador sobre un fichero ***“.c”***.
+2. El compilador interpretaras las partes del código que tenga delante un **“#”**, por ejemplo ***“#include”***, ***“#if”***...etc.
+3. Después de cambiar las líneas mencionadas anteriormente por el contenido generado al interpretarlas empezará a transformar todo el código a formato **“.o”**.
+4. Una vez terminado el proceso anterior conocido como **“preprocesador”**, se ejecuta la segunda parte que es el **“enlazador”**. En esta parte del proceso se enlazará todos los ficheros objetos creados a un mismo fichero de salida que será el ejecutable final.
+5. Una vez terminado el proceso podremos ejecutar el fichero ***“a.out”***(Nombre por defecto si no especificamos ninguno) generado, pero este no estará en un directorio de ejecutables reconocido por el sistema por lo que se debe ejecutar desde el mismo directorio.
+
+Este sería el proceso que realiza el compilador ***“gcc”*** de forma muy resumida. De aquí debemos entender una parte muy importante y es la opción ***“#include”***, cuando estamos escribiendo nuestro código haremos usos de funciones ya existentes o creadas por otras personas. Por ejemplo para la función ***“printf”*** que nos permite imprimir en pantalla un texto necesitamos definir y especificar su funcionamiento, pero al ser algo ya existente lo que haríamos es incluir el fichero que contiene su funcionamiento con la opción **"#include <stadio.h\>"**. Cuando el compilador interpreta el “#include” pondrá en esa parte del código la parte necesaria para ejecutar ***“printf”*** al generar el ejecutable. Como los programas suelen incluir muchos ficheros ***“.h”*** que suelen ser como un libro de funciones o librerías donde se almacena la definición de diferentes funciones que necesita usar el programa, de esta forma no se escribe en cada fichero el mismo código repitiendolo, y todos usan el código existente en un mismo fichero ***“.h”*** que se incluye en todos ellos con la opción explicada.
+
+## Fichero configure
+
+Llegado a este punto nos habremos dado cuenta que en el caso de un programa ***“grande”*** habria muchisimos ficheros que compilar de forma manual, para eso existen dos ficheros llamados ***“configure y make”*** que nos permitirá automatizar este proceso a un solo comando por parte del usuario.
+El primero de estos dos es el fichero ***“configure”***, este no siempre es necesario pero la mayoría de las veces se debe usar. Es un script que contiene diferentes parámetros que nos permitirá configurar cosas como el directorio en el que queremos que se copie nuestro programa una vez compilado. Al ejecutar este fichero con ***“./configure”*** se comprobará que todas las dependencias necesarias para el paquete que vamos a compilar están en nuestro sistema, si todo está correcto se generará un fichero llamado ***“Makefile”***. 
+
+La comprobación de dependencias son necesarias porque generalmente los programas usan un enlazado dinámico, que consiste en usar otros paquetes existente en el sistema, de esta forma un programa ocupa mucho menos al no tener incluido todos los otros programas que necesita para funcionar, y si varios programas hacen uso de esos mismos tampoco habrá que instalarlo varias veces repetidos.
+
+## Fichero Makefile
+
+Este fichero puede estar ya incluido o puede ser generado como vimos en el punto anterior. Al ejecutar este fichero se realizará todo el proceso de compilación de forma automatizada creando todos los ficheros objetos y el ejecutable final como vimos anteriormente. Entonces cuando ejecutamos el comando ***“make”*** dentro del directorio se inicializará una compilación de todo hasta generar el ejecutable dentro del mismo directorio, luego tendremos que ejecutar el comando “make install” para que se copie el ejecutable o diferentes ejecutables, así como otros ficheros a los directorios correctos. Todos ellos especificados en el fichero ***“Makefile”*** ya sea por defecto o definido por el fichero “configure”. A la ejecución de ***“make”*** podemos añadirle diferentes opciones como especificar el número de procesadores que se usará para compilar u otras cosas, todas estas opciones podemos verla en su manual según la necesidad de cada uno.
+
+## Compilar gparted
+
+Ahora que ya sabemos como funciona el compilador, vamos a compilar el programa “gparted”. Podemos obtener su código fuente de diferentes formas, pero al estar en los repositorios de mi sistema lo obtendré usando el comando:
+```jsx
+apt source gparted
+```
+
+Esto descarga el comprimido del código fuente y lo descomprime de forma automática, también descarga un fichero con formato “.desc” en el que se indicará las dependencias necesarias para compilar esta herramienta y otros datos de control. En nuestro caso como está en los repositorios podemos automatizar esta instalación de dependencias con el comando:
+```jsx
+apt build-dep gparted
+```
+
+Ya con todo preparado nos iremos al directorio donde esta los ficheros de esta herramienta que hemos descargado antes y ejecutamos el fichero “configure”, a esta ejecución añadiremos una opción que sera “prefix” para indicarle que queremos que se instale en un directorio diferente al habitual que suele ser “/usr/local”. Esto hará que no sea reconocido por el sistema de forma automática, pero funcionará correctamente el programa. Ejecutamos lo siguiente y veremos que nos da también un resumen de la configuración.
+```jsx title="./configure --prefix=/comp"
+........
+======================== Final configuration ===========================
+                         Installing into prefix  :  /comp
+
+                      Build help documentation?  :  yes
+
+           Use native libparted dmraid support?  :  no
+
+   Explicitly grant root access to the display?  :  no
+
+       --- Features Based On Libparted Version ---
+       Need delete old partitions before
+              creating a loop table workaround?  :  no
+   Have old libparted file system resizing API?  :  no
+   Have new libparted file system resizing LIB?  :  yes
+                  Enable online resize support?  :  yes
+
+ If all settings are OK, type make and then (as root) make install
+========================================================================
+```
+Ahora tal y como nos indica haremos uso del comando “make install” aunque en mi caso especificar el número de núcleos que voy a usar para que se haga de una forma mas rápida, esto lo haremos de la siguiente forma:
+```jsx
+make install -j12
+```
+:::tip Consejo para compilar
+Cuando compilamos podemos seleccionar los núcleos que vamos a usar para dicho proceso. En caso de no saber cuantos nucleos tenemos y querer usarlos todos podemos ejecutar el siguiente comando:
+>make -j$(nproc)
+:::
+
+### Prueba de funcionamiento "Gparted"
+
+Con esto ya habríamos terminado de compilar nuestra herramienta y veremos a continuación una imagen de como funciona.
+
+* Herramienta **"Gparted"** funcionando:
+![Comprobación de funcionamiento gparted](/img/compilacion-paquete/gparted-comp.png)
+
+## Compilar herramienta “nala”
+
+Para esta herramienta seguiremos los mismos pasos anteriores, usamos “apt source” y ***“apt build-dep”***. La única diferencia que veremos es que en este caso no se incluye un fichero ***“configure”*** esto se debe a que esta herramienta está pensada solamente para distribuciones basadas en ***“Debian”***, por lo que viene configurado por defecto los directorios necesarios en el fichero ***“Makefile”*** proporcionado por el desarrollador.
+Cuando ejecutemos el comando “make install” veremos que en el fichero ***“Makefile”*** se ha especificado el uso de herramientas como ***“pip”*** de python para poder compilar esta herramienta. Dejare una imagen del funcionamiento de esta herramienta, la cual me parece una gran mejora respecto al gestor actual ***“apt”***, proporciona una interfaz mas moderna así como nuevas funciones que incluyen entre ellas la descarga paralela de paquetes, la selección automática de repositorios según nuestra ubicación, historial de instalaciones por usuarios…etc Poniendo una herramienta de gestor de paquetes por terminal a la altura de herramientas gráficas.
+
+### Prueba de funcionamiento "nala"
+
+* Herramienta **"nala"** funcionando:
+![Comprobación de funcionamiento nala](/img/compilacion-paquete/nala-comp.png)
