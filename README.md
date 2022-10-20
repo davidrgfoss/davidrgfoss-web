@@ -1,11 +1,14 @@
 ### Hi there 👋
 
-<!--
-**davidrgfoss/davidrgfoss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
 ![github stats](https://github-readme-stats.vercel.app/api?username=davidrgfoss&show_icons=true&theme=buefy)
 
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=davidrgfoss&layout=compact&theme=buefy)
+
+
+<!--
+**davidrgfoss/davidrgfoss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+
+
 
 Here are some ideas to get you started:
 
