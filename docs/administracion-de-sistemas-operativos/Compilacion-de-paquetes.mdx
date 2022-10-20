@@ -78,6 +78,14 @@ Cuando compilamos podemos seleccionar los núcleos que vamos a usar para dicho p
 >make -j$(nproc)
 :::
 
+Los ficheros Makefile, contiene multitud de funcionalidades preprogramas, se podría decir que es un script que automatiza todo lo explicado anteriormente. Algunos desarrolladores también incluye la opción de poder desinstalar, otras veces eso tendremos que hacerlo manualmente y borrar todo los directorios o ficheros añadidos a nuestro sistema. Tambien es muy importante señalar que los ficheros generados por el “make” podemos limpiarlo para que ocupe menos espacio el directorio, dejando la carpeta que contiene el software compilado como estaba al inicio. Yo personalmente una vez instalado el paquete y comprobado que funciona suelo borrar el directorio completo con todos los ficheros compilados y no compilados al no ser necesario. Dejo a continuación los comandos mencionados.
+```jsx title="Comando para desinstalar la herramienta:"
+make uninstall
+```
+```jsx title="Comando para limpiar los ficheros generados al compilar:"
+make clean
+```
+
 ### Prueba de funcionamiento "Gparted"
 
 Con esto ya habríamos terminado de compilar nuestra herramienta y veremos a continuación una imagen de como funciona.
