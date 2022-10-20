@@ -1,4 +1,4 @@
-### Hi there 👋
+### Hola a todos!!! 👋 Este es mi proyecto personal enfocado al software libre.
 
 ![github stats](https://github-readme-stats.vercel.app/api?username=davidrgfoss&show_icons=true&theme=buefy)
 
