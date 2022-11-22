@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Davidrg FOSS',
-  tagline: 'En este sitio encontrarás diversos manuales o códigos desarrollados por mí.',
+  tagline: 'En este sitio encontrarás diversos manuales y códigos desarrollados por mí.',
   url: 'https://www.davidrgfoss.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
