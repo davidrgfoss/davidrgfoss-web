@@ -13,7 +13,7 @@ function interactive {
     while [ "$BUCL" = "n" ]
     do
         clear
-        echo -e "${CYAN}Se va a añadir los siguientes cambios al repositorio de gitlab${NC}"
+        echo -e "${CYAN}Se va a añadir los siguientes cambios al repositorio de github${NC}"
         sleep 2
         git status
         echo -e "${RED}¿Estas seguro de añadir estos cambios?(s/n)${NC}"
@@ -48,7 +48,7 @@ function interactive {
 
 function no-interactive {
     clear
-    echo -e "${CYAN}Se va a añadir los siguientes cambios al repositorio de gitlab${NC}"
+    echo -e "${CYAN}Se va a añadir los siguientes cambios al repositorio de github${NC}"
     sleep 2
     git status
     git add . --all || true
