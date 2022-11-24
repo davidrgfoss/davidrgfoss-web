@@ -5,7 +5,7 @@ authors: David
 tags: [davidrgfoss, bienvenida, anuncios]
 ---
 
-¡Bienvenidos a todos! hola
+¡Bienvenidos a todos!
 
 Antes que nada me encantaría poder presentarme, yo soy David. Siempre he tenido la informática como pasión en la vida, me encanta aprender cosas nuevas de forma constante, pero es casi imposible conocer todo en este mundo de la «informática».
 
