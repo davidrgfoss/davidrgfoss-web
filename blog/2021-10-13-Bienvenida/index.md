@@ -7,12 +7,14 @@ tags: [davidrgfoss, bienvenida, anuncios]
 
 ¡Bienvenidos a todos!
 
-Antes que nada me encantaría poder presentarme, yo soy David. Siempre he tenido la informática como pasión en la vida, me encanta aprender cosas nuevas de forma constante, pero es casi imposible conocer todo en este mundo de la «informática».
+Lo primero de todo es presentarme, mi nombre es David, y lo segundo sería hablaros un poco de cómo surge esto y su por qué. 
+Siempre he considerado la informática mi pasión y me encanta poder aprender todo lo posible sobre ella, aunque sé que es casi imposible llegar a conocer todo sobre este mundo tan amplio.
 
-Esto es un proyecto pensado para poder compartir mi conocimiento en distintos manuales, códigos o proyectos. Todo será sin coste alguno para el usuario, soy un gran partidario de la **filosofía _Open-Source_ y del conocimiento totalmente gratuito**. Aunque veremos también manuales o artículos enfocados al uso de software privado, porque hay que tener claro que ambos mundos tienen cosas que aportar y cosas que mejorar. 
+Lo que nos encontramos aquí es un proyecto pensado como un modo de yo poder compartir mi conocimiento mediante diferentes manuales, códigos y proyectos. Ya que soy un gran partidario de la **filosofía _Open-Source_ y del conocimiento totalmente gratuito**, todo lo que hay aquí es sin coste para el usuario. 
+También nos encontraremos manuales y artículos enfocados al uso de software privado, pero siempre teniendo en cuenta que éstos tienen, tanto cosas que aportar, como que mejorar. 
 
-Este proyecto es un rediseño de un antiguo blog mío el cual ya no esta disponible, tenia el nombre de  «**Dram Blog**». También ha sido posible gracias a la empresa «[**QuantCDN**](https://www.quantcdn.io/)» que me ha permitido alojar esta web estática de forma gratuita, así como al proyecto «[**Docusaurus**](https://docusaurus.io/)».
+Este proyecto es un rediseño de un antiguo blog mío el cual ya no está disponible, su nombre era «**Dram Blog**». También ha sido posible gracias a la empresa «[**QuantCDN**](https://www.quantcdn.io/)» que me ha permitido alojar esta web estática de forma gratuita, así como al proyecto «[**Docusaurus**](https://docusaurus.io/)».
 
-¡Estoy encantado de poder daros la bienvenida a todos los usuarios que entréis en esta web, espero que podáis disfrutarla y aprender cosas nuevas de mí!
+A modo de conclusión, deciros que estoy encantado de poder daros la bienvenida a todos los usuarios que entréis en esta web. Espero y deseo que podáis disfrutarla mientras aprendéis cosas nuevas sobre el fascinante mundo de la informática junto a mí.
 
 ![Paisaje Bonito](./banner23.jpg)
