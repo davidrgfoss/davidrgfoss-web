@@ -6,24 +6,25 @@ sidebar_position: 3
 
 ## Requisitos
 
-Para realizar esta tarea vamos a tener un entorno de red montado sobre "VirtualBox" con las siguientes características.
+Para realizar esta tarea vamos a tener un entorno de red montado sobre "VirtualBox" con las siguientes características:
 
-* Maquina Debian servidor:
-	* Dos adaptadores de red, el primero estará como adaptador puente y el segundo configurado como red interna.
-	* El sistema sera instalado sin entorno de escritorio.
-	* La configuración de red sera estática para la red interna.
-* Maquina Debian 9.6 cliente:
+* _Maquina Debian servidor_:
+	* Dos adaptadores de red. El primero estará como adaptador puente y el segundo configurado como red interna.
+	* El sistema será instalado sin entorno de escritorio.
+	* La configuración de red será estática para la red interna.
+* _Maquina Debian 9.6 cliente_:
 	* En nuestro caso usaremos el sistema con entorno de escritorio "Mate".
 	* El adaptador de red debe estar configurado como red interna.
-	* La configuración de red sera estática.
-* Maquina Windows 7 cliente:
-	* La configuración de red sera estática.
+	* La configuración de red será estática.
+* _Maquina Windows 7 cliente_:
+	* La configuración de red será estática.
 
 ## Instalación del servidor.
 
-Vamos a utilizar la distribución _Debian_ como servidor, lo instalaremos usando la imagen de instalación por red que podemos obtener de su web oficial. Durante la instalación escogeremos solamente la opción de utilidades básicas del sistema y servidor _SSH_.
+Vamos a utilizar la distribución _Debian_ como servidor, lo instalaremos usando la imagen de instalación por red, el cual lo podemos obtener de su web oficial. Durante la instalación escogeremos solamente la opción de "utilidades básicas del sistema y servidor _SSH_".
 
-Una vez haya terminado la instalación configuraremos un nombre para nuestra maquina y un nombre de dominio, para este caso sera el nombre de un supuesto instituto.
+Una vez haya terminado la instalación, configuraremos un nombre para nuestra máquina y un nombre de dominio.
+Para este caso será el nombre de un supuesto instituto:
 
 * Fichero "_/etc/hostname_"
 > davidrg-debser
@@ -32,11 +33,12 @@ Una vez haya terminado la instalación configuraremos un nombre para nuestra maq
 > 127.0.0.1 localhost
 > 127.0.1.1 davidrg-debser.iesrg.com davidrg-debser
 
-Una vez escrito podemos comprobar que esta correctamente configurado con el comando "*hostname*"
+Una vez escrito podemos comprobar que está correctamente configurado con el comando "*hostname*"
 
 ## Cambiar el nombre de las interfaces de red
 
-Tenemos que configurar el servidor para que los clientes puedan acceder a internet desde la red interna, para esto necesitaremos tener un adaptador de red en modo puente y con *DHCP* externo, mientras que el otro adaptador de red estará como red interna y estática. En las ultimas versiones de la distribución *Debian* las tarjetas de red serán renombradas por el sistema, dejaran de llamarse "_eth0, wlan0..._" y se llamaran "_enp0s3..._". Para que el nombre siga llamándose como lo conocemos normalmente necesitaremos hacer unos cambios en el fichero "_/etc/default/grub_".
+Tenemos que configurar el servidor para que los clientes puedan acceder a internet desde la red interna. Para esto necesitaremos tener dos adaptadores de red. El primero de ellos en modo puente y con *DHCP* externo, y el otro adaptador estará como red interna y estática. 
+En las ultimas versiones de la distribución *Debian* las tarjetas de red serán renombradas por el sistema, dejaran de llamarse "_eth0, wlan0..._" y se llamaran "_enp0s3..._". Para que el nombre siga llamándose como lo conocemos normalmente necesitaremos hacer unos cambios en el fichero "_/etc/default/grub_".
 
 * Nos situamos en la siguiente linea:
 > GRUB_CMDLINE_LINUX=""
@@ -49,11 +51,12 @@ Tenemos que configurar el servidor para que los clientes puedan acceder a intern
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
-Cuando reiniciemos nuestro servidor, podremos ver que ya aparece los dos adaptadores de red con los nombre "_eth0, eth1_" respectivamente.
+Cuando reiniciemos nuestro servidor, podremos ver que ya aparecen los dos adaptadores de red con los nombres "_eth0, eth1_" respectivamente.
 
 ## Configuración de red del servidor
 
-Nuestro servidor el cual tiene dos interfaz de red tiene que ser configurado desde el fichero "_/etc/network/interfaces_". En esta configuración, se especificara que la tarjeta de red en modo puente (eth0) estará configurada por el servicio *DHCP* disponible en la red. La interfaz de red que tenemos configurada como "red interna" tendrá una configuración estática, y por ultimo añadiremos una opción al fichero para permitir el protocolo *NAT* entre las dos interfaces.
+Nuestro servidor cuenta con dos interfaces de red y tiene que ser configurado desde el fichero "_/etc/network/interfaces_". 
+En esta configuración, se especificara que la tarjeta de red en modo puente (eth0) estará configurada por el servicio *DHCP* disponible en la red. La interfaz de red que tenemos configurada como "red interna" tendrá una configuración estática, y por ultimo añadiremos una opción al fichero para permitir el protocolo *NAT* entre las dos interfaces.
 
 * Configuración del fichero "/etc/network/interfaces"
 ```jsx
@@ -81,7 +84,8 @@ up iptables -t nat -A POSTROUTING -o eth0 -s 192.168.1.0/24 -j MASQUERADE
 down iptables -t nat -D POSTROUTING -o eth0 -s 192.168.1.0/24 -j MASQUERADE
 ```
 
-Una vez terminado esta configuración, solamente deberemos activar el reenvió de paquetes entre las dos interfaces, y reiniciar el servicio de red del sistema. Para activar el reenvió de paquetes tendremos que modificar una linea del fichero "***systcl.conf***", a continuación dejare la linea que debemos descomentar en el fichero, en caso de no existir dicha linea debemos escribirla nosotros.
+Una vez terminado esta configuración, solamente deberemos activar el reenvío de paquetes entre las dos interfaces, y reiniciar el servicio de red del sistema. Para activar el reenvío de paquetes tendremos que modificar una linea del fichero "***systcl.conf***". 
+A continuación dejaré la linea que debemos descomentar en el fichero, en caso de no existir dicha linea debemos escribirla nosotros.
 
 * Modificación del fichero "_/etc/sysctl.conf_"
 > net.ipv4.ip_forward=1
@@ -93,19 +97,19 @@ systemctl restart networking
 
 ## Prueba de funcionamiento
 
-Las maquinas clientes configuraremos una dirección IP que este dentro de la misma red con mascara /24, añadiremos como puerta de enlace la IP "_192.168.1.254_" y por ultimo un servidor DNS valido.
+Con las máquinas clientes configuraremos una dirección IP que este dentro de la misma red con máscara /24, añadiremos como puerta de enlace la IP "_192.168.1.254_" y por último un servidor DNS valido.
 
 A continuación dejare varias imágenes donde podremos ver la configuración de red del servidor y pruebas de funcionamiento desde las maquinas clientes.
-* Configuración de red de la maquina servidor.
+* Configuración de red de la maquina servidor:
 ![Comprobación de funcionamiento](/img/router-nat/2.png)
-* Cliente "_Windows 7_" navegando por internet.
+* Cliente "_Windows 7_" navegando por internet:
 ![Comprobación de funcionamiento](/img/router-nat/3.png)
-* Cliente "_Debian_" navegando por internet.
+* Cliente "_Debian_" navegando por internet:
 ![Comprobación de funcionamiento](/img/router-nat/4.png)
 
-Con esto ya tendríamos configurado dos clientes que navegaran por internet pasando por el servidor. 
+Con esto ya tendríamos configurados dos clientes que navegarán por internet pasando por el servidor. 
 
 :::danger Posible error
 Este proceso puede causar problemas cuando el servidor tiene en ambas tarjetas de red dos direcciones *IP* que son de la misma red.
-Por poner un ejemplo podemos tener ambas tarjetas de red en la misma red de "192.168.1.0", aunque tengan distintas direcciones *IP* el proceso de *MASQUERADE* puede causar conflicto en estos casos.
+Por poner un ejemplo, podemos tener ambas tarjetas de red en la misma red de "192.168.1.0", aunque tengan distintas direcciones *IP*, el proceso de *MASQUERADE* puede causar conflicto en estos casos.
 :::
