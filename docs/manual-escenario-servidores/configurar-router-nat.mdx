@@ -38,12 +38,12 @@ Una vez escrito podemos comprobar que está correctamente configurado con el com
 ## Cambiar el nombre de las interfaces de red
 
 Tenemos que configurar el servidor para que los clientes puedan acceder a internet desde la red interna. Para esto necesitaremos tener dos adaptadores de red. El primero de ellos en modo puente y con *DHCP* externo, y el otro adaptador estará como red interna y estática. 
-En las ultimas versiones de la distribución *Debian* las tarjetas de red serán renombradas por el sistema, dejaran de llamarse "_eth0, wlan0..._" y se llamaran "_enp0s3..._". Para que el nombre siga llamándose como lo conocemos normalmente necesitaremos hacer unos cambios en el fichero "_/etc/default/grub_".
+En las últimas versiones de la distribución *Debian* las tarjetas de red serán renombradas por el sistema, dejarán de llamarse "_eth0, wlan0..._" y se llamarán "_enp0s3..._". Para que el nombre siga llamándose como lo conocemos normalmente necesitaremos hacer unos cambios en el fichero "_/etc/default/grub_".
 
-* Nos situamos en la siguiente linea:
+* Nos situamos en la siguiente línea:
 > GRUB_CMDLINE_LINUX=""
 
-* Modificamos la linea:
+* Modificamos la línea:
 > GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"
 
 * Ejecutamos el siguiente comando:
@@ -56,7 +56,7 @@ Cuando reiniciemos nuestro servidor, podremos ver que ya aparecen los dos adapta
 ## Configuración de red del servidor
 
 Nuestro servidor cuenta con dos interfaces de red y tiene que ser configurado desde el fichero "_/etc/network/interfaces_". 
-En esta configuración, se especificara que la tarjeta de red en modo puente (eth0) estará configurada por el servicio *DHCP* disponible en la red. La interfaz de red que tenemos configurada como "red interna" tendrá una configuración estática, y por ultimo añadiremos una opción al fichero para permitir el protocolo *NAT* entre las dos interfaces.
+En esta configuración, se especificará que la tarjeta de red en modo puente (eth0) estará configurada por el servicio *DHCP* disponible en la red. La interfaz de red que tenemos configurada como "red interna" tendrá una configuración estática, y por último añadiremos una opción al fichero para permitir el protocolo *NAT* entre las dos interfaces.
 
 * Configuración del fichero "/etc/network/interfaces"
 ```jsx
@@ -84,8 +84,8 @@ up iptables -t nat -A POSTROUTING -o eth0 -s 192.168.1.0/24 -j MASQUERADE
 down iptables -t nat -D POSTROUTING -o eth0 -s 192.168.1.0/24 -j MASQUERADE
 ```
 
-Una vez terminado esta configuración, solamente deberemos activar el reenvío de paquetes entre las dos interfaces, y reiniciar el servicio de red del sistema. Para activar el reenvío de paquetes tendremos que modificar una linea del fichero "***systcl.conf***". 
-A continuación dejaré la linea que debemos descomentar en el fichero, en caso de no existir dicha linea debemos escribirla nosotros.
+Una vez terminada esta configuración, solamente deberemos activar el reenvío de paquetes entre las dos interfaces, y reiniciar el servicio de red del sistema. Para activar el reenvío de paquetes tendremos que modificar una línea del fichero "***systcl.conf***". 
+A continuación dejaré la línea que debemos descomentar en el fichero, en caso de no existir dicha línea debemos escribirla nosotros.
 
 * Modificación del fichero "_/etc/sysctl.conf_"
 > net.ipv4.ip_forward=1
@@ -97,10 +97,10 @@ systemctl restart networking
 
 ## Prueba de funcionamiento
 
-Con las máquinas clientes configuraremos una dirección IP que este dentro de la misma red con máscara /24, añadiremos como puerta de enlace la IP "_192.168.1.254_" y por último un servidor DNS valido.
+Con las máquinas clientes configuraremos una dirección IP que esté dentro de la misma red con máscara /24, añadiremos como puerta de enlace la IP "_192.168.1.254_" y por último un servidor DNS valido.
 
-A continuación dejare varias imágenes donde podremos ver la configuración de red del servidor y pruebas de funcionamiento desde las maquinas clientes.
-* Configuración de red de la maquina servidor:
+A continuación dejaré varias imágenes dónde podremos ver la configuración de red del servidor y pruebas de funcionamiento desde las máquinas clientes.
+* Configuración de red de la máquina servidor:
 ![Comprobación de funcionamiento](/img/router-nat/2.png)
 * Cliente "_Windows 7_" navegando por internet:
 ![Comprobación de funcionamiento](/img/router-nat/3.png)
