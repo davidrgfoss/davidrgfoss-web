@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Manuales Introducción
 
-Este es el apartado de documentación. En este apartado veremos agrupados distintas cosas:
+En este apartado encontramos documentación. En él aparecen diferentes conceptos que os explico a continuación:
  
-* Manuales individuales: Cosas puntuales como configurar un servicio o servidor para algo concreto.
-* Manuales agrupados: Manuales que agrupan distintas cosas que conformen una tarea final. Por ejemplo montar un escenario con distintos servicios.
-* Explicación de códigos: Publicaré también como usar un comando concreto, o explicar algún código que yo haya creado.
+* _Manuales individuales_: Son cosas puntuales o para algo concreto, como para configurar un servicio o servidor.
+* _Manuales agrupados_: Como indica su propio nombre, agrupan diferentes cosas para que juntas conformen una tarea final. Por ejemplo montar un escenario con distintos servicios.
+* _Explicación de códigos_: Publicaré también cómo usar un comando concreto, y os explicaré algún código que yo haya creado.
 
 
-A la izquierda tendremos un menú que nos permitirá escoger sobre que queremos leer. 
+En el lado izquierdo de esta página, podemos ver un menú que nos permite acceder de una forma sencilla a aquello que queremos leer. 
