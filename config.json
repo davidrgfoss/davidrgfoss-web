@@ -1,7 +1,10 @@
 {
   "index_name": "davidrgfoss",
+  "start_urls": [
+    "https://www.davidrgfoss.com/"
+  ],
   "sitemap_urls": [
-    "https://www.davidrgfoss.com/sitemap.xml"
+    "http://www.davidrgfoss.com/sitemap.xml"
   ],
   "sitemap_alternate_links": true,
   "stop_urls": [
