@@ -52,7 +52,7 @@ const config = {
       contextualSearch: true,
 
       // Optional: see doc section below
-      appId: '2O1H21K8KT',
+      appId: '2AY2P0EYAT',
 
       // Optional: Algolia search parameters
       searchParameters: {},
