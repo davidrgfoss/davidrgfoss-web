@@ -86,7 +86,7 @@ make uninstall
 make clean
 ```
 
-### Prueba de funcionamiento "Gparted"
+### Prueba de funcionamiento de la herramienta "Gparted"
 
 Con esto ya habríamos terminado de compilar nuestra herramienta y veremos a continuación una imagen de como funciona.
 
@@ -98,7 +98,7 @@ Con esto ya habríamos terminado de compilar nuestra herramienta y veremos a con
 Para esta herramienta seguiremos los mismos pasos anteriores, usamos “apt source” y ***“apt build-dep”***. La única diferencia que veremos es que en este caso no se incluye un fichero ***“configure”*** esto se debe a que esta herramienta está pensada solamente para distribuciones basadas en ***“Debian”***, por lo que viene configurado por defecto los directorios necesarios en el fichero ***“Makefile”*** proporcionado por el desarrollador.
 Cuando ejecutemos el comando “make install” veremos que en el fichero ***“Makefile”*** se ha especificado el uso de herramientas como ***“pip”*** de python para poder compilar esta herramienta. Dejare una imagen del funcionamiento de esta herramienta, la cual me parece una gran mejora respecto al gestor actual ***“apt”***, proporciona una interfaz mas moderna así como nuevas funciones que incluyen entre ellas la descarga paralela de paquetes, la selección automática de repositorios según nuestra ubicación, historial de instalaciones por usuarios…etc Poniendo una herramienta de gestor de paquetes por terminal a la altura de herramientas gráficas.
 
-### Prueba de funcionamiento "nala"
+### Prueba de funcionamiento de la herramienta "nala"
 
 * Herramienta **"nala"** funcionando:
 ![Comprobación de funcionamiento nala](/img/compilacion-paquete/nala-comp.png)
