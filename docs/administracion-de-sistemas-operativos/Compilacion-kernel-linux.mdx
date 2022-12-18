@@ -1,0 +1,152 @@
+---
+sidebar_position: 4
+---
+
+# Compilacion del Kernel de Linux
+
+## Requisitos/recomendaciones
+
+Para realizar esta tarea voy a usar una distribución **"Debian 11"**.
+
+## Introducción
+
+De forma general los usuarios suelen usar distribuciones “Linux” sin plantearse nunca que es realmente “Linux”. A lo largo de este artículo vamos a ver de una forma resumida cómo compilar un “Kernel” para usar en nuestro sistema. También intentaremos entender que es realmente eso de “Kernel” y para qué sirve.
+
+## ¿Que es el “Kernel” de “Linux”?
+
+Un sistema operativo se compone de muchos componentes o “partes” encargadas de diferentes funciones, al final el conjunto de todas estas partes hacen funcionar lo que sería el sistema operativo. En este caso hablaremos de la parte conocida como “Kernel” o núcleo.
+
+El nombre se refiere a que es como el núcleo del sistema o la parte más central e interior. Esto se debe a cómo funciona asi como las tareas que debe cumplir, podriamos separar estas tareas en 4 principales que serian:
+
+1. Gestión de la memoria: supervisa cuánta memoria se utiliza para almacenar qué tipo de elementos, así como el lugar en que los guarda.
+2. Gestión de los procesos: determina qué procesos pueden usar la unidad central de procesamiento (CPU), cuándo y durante cuánto tiempo.
+3. Controladores de dispositivos: actúa como mediador o intérprete entre el hardware y los procesos.
+4. Seguridad y llamadas al sistema: recibe solicitudes de servicio por parte de los procesos.
+
+Como hemos podido ver el núcleo de forma muy resumida se encarga de que el sistema operativo así como su software pueda comunicarse y usar los recursos físicos de la máquina (hardware). Lo más común es que el usuario no se entere de su funcionamiento, esto se debe a la naturaleza de sus tareas, también tiene su propio espacio aislado que no comparte con el espacio usado por el usuario. Por poner un ejemplo de lo anterior
+
+Las Aplicaciones del usuario se almacenan en un espacio diferente al núcleo, de esta forma no molesta a su funcionamiento ni tampoco muestra información que el usuario de forma general no necesita.
+
+:::tip Pequeño ejemplo
+1. El usuario cuando abre una aplicación.
+2. Esta se abre en su espacio que se comunicara con el sistema operativo.
+3. El sistema operativo se comunicara con el núcleo, esté en su espacio aislado realizará diferentes operaciones ejecutando sus propias funciones para que los recursos solicitados por la aplicación del usuario puedan asignarse de forma física en el hardware.
+:::
+
+## Compilar nuestro propio kernel
+
+De forma general el Kernel se actualiza de forma automática junto a nuestro sistema operativo, pero también es posible crear nuestro propio núcleo a partir del código fuente.
+Pero entonces sí es automático porque complicarse la vida con este proceso. Esto nos llevaría a la siguiente pregunta.
+
+### ¿Por qué compilar nuestro propio Kernel?
+
+Los motivos pueden ser muy variados, pero lo más común es querer personalizar el núcleo de forma más precisa para el uso que le vayamos a dar. Aunque es un proceso complicado y realmente requiere bastantes conocimientos, podemos automatizar parte de ello gracias a los script programados por el equipo desarrollador de ***“Linux”***. 
+
+El motivo más común para compilar nuestro propio núcleo es por rebajar el coste en recursos y porque estemos trabajando en personalizar nuestro sistema operativo al más mínimo detalle para nuestra máquina, quitando todo lo innecesario. En un uso normal o común, sería un proceso poco ventajoso y muy complicado haciendo que las horas invertidas en dicho proceso no merezca la pena.
+
+### ¿Qué es el fichero “.config”?
+
+Antes de seguir leyendo, aconsejo en este punto leer mi otro artículo sobre la compilación de un programa en **"C"**, ya que es un proceso muy similar. Para leerlo haz clic [aqui](Compilacion-de-paquetes.mdx)
+
+Una vez leído lo anterior, continuamos entendiendo primero que contiene el fichero **“.config”**. Este fichero contiene habilitado todos los módulos que va a usar el sistema operativo, estos módulos permiten que los recursos del hardware sean reconocidos por el sistema así como su posibilidad de usarla. Por poner un ejemplo, digamos que tenemos una tarjeta de red inalámbrica, para que el sistema operativo la reconozca y te deje usarla requiere que el módulo correspondiente a su controlador esté habilitado en el núcleo del sistema, eso se hace en este punto.
+
+El núcleo de forma predeterminada contiene muchas opciones habilitada por defecto y otras mucha no habilitadas, esto lo encontraremos escrito de la siguiente forma.
+
+```jsx title="Esquema del contenido que hay en el fichero .config"
+# Modulo_WIFI is not set
+Modulo_WIFI=y
+Modulo_WIFI=m
+```
+Como acabamos de ver en el fichero los módulos se definen de 3 formas diferentes, la primera es que el módulo está inhabilitado, la segunda es que está activado de forma estática y por último activado de forma dinámica.
+
+#### Diferencias entre estatico y dinamico
+
+El núcleo de ***“Linux”*** se hace con la filosofía de que todo el hardware posible sea reconocido y funcione de forma correcta esto conlleva un problema y es que de forma predeterminada tendremos cargados un montón de módulos para poder detectar una gran variedad de hardware que a lo mejor nosotros no usamos. Si ponemos como ejemplo que introducimos una memoria USB el dispositivo al conectarse tiene en su firmware detallado qué tipo de dispositivo es, el sistema operativo basado en el tipo de dispositivo introducido buscará el módulo que necesita y lo activará para usarlo.
+
+Estos módulos pueden ser cargados en el núcleo de dos formas diferentes que son las siguientes:
+
+* Estático: Esta opción corresponde a todos los módulos marcados como **“=y”**. Estos módulos están incluidos en el propio núcleo, y son cargados en el arranque del sistema. Se inician más rápido que los dinámicos, ya que son cargados en cada arranque del sistema, pero conlleva el problema de que consumen ***“RAM”*** de la máquina. Con este método el sistema no necesitaría activar ningún módulo, ya que estaría activado por defecto.
+
+* Dinámico: Esta opción corresponde a los módulos marcados como **“=m”**, es la solución al problema que tienen los módulos cargados de forma estática y su consumo de ***“RAM”***. Estos módulos están almacenados dentro del sistema operativo pero no están cargados en la memoria ***“RAM”***. Al estar enlazado de forma dinámica y no desactivado permite al sistema operativo activar los módulos que necesita según el momento o necesidad.
+
+:::tip Resumen
+En el caso en el que introducimos una memoria USB nos encontramo con 3 opciones:
+1. Si el módulo correspondiente no está configurado el sistema no lo reconocerá.
+2. Si está activado de forma estática lo reconocerá y nos permitirá acceder a él.
+3. Por último si lo configuramos como dinámico, el sistema al introducir la memoria USB detectara que necesita un módulo para reconocer el dispositivo y activará el módulo que necesite en la memoria.
+:::
+
+### ¿Cómo generar el fichero .config?
+
+Tenemos diversas formas de compilar el núcleo, a continuación detallaré algunas de las opciones más usadas y por último compilare un núcleo personalizado para mi máquina intentando reducir el tamaño del mismo.
+
+Una vez leído lo anterior continuamos explicando las opciones más usadas para generar el fichero “.config” que usará el compilador al generar el nuevo núcleo.
+
+1. **oldconfig:** Esta opción creará un fichero **“.config”** usando como base la configuración actual almacenada en el fichero ***“/boot/config-x.x.x”***. Nos preguntará por los nuevos módulos u opciones encontrados en el ***“Kernel”*** nuevo que vamos a compilar. Esto se debe al cambio de versión en el que se añaden cosas nuevas,
+2. **localmodconfig:** Con esto crearemos una configuración usando como base el sistema operativo en funcionamiento actualmente, esto quiere decir que solo se añadirán los módulos que se están usando y se eliminara todos los que no se usan.
+3. **tinyconfig:** Creara un fichero de configuración muy básico y reducido, es la opción más complicada pero nos permitirá personalizar el núcleo de la forma tan precisa como necesitemos escogiendo módulo por módulo.
+
+:::tip Consejo
+Estas opciones siempre deben usarse en el mismo directorio y con el prefijo **“make”** delante siempre. Por poner un ejemplo:
+> make localmodconfig
+:::
+
+Una vez generado el fichero **“.config”** usando una de las opciones anteriores podemos configurar el fichero para añadir o quitar lo que necesitemos con el comando:
+```jsx
+make menuconfig
+```
+Puedo dejar algunos consejos sobre módulos importantes que podemos activar, aunque esto solo son menciones a unos módulos importantes, harán falta activar bastantes más para un funcionamiento correcto.
+
+* General setup:
+    * Initial RAM filesystem and RAM disk (initramfs/initrd) support: Dentro de esta opción podemos desactivar el soporte a todos los formatos de comprensión no utilizados por nuestro initrd, en mi caso podría dejar solamente el soporte a la forma gzip.
+* Activamos "64-bibt kernel" y "Networking support": 
+    * En el caso de **"Networking support"** se activará de manera automática solo dos opciones, una es **"Wireless"** y la otra **"Netlink interface for ethtool"**, la primera permite la conexión a una red inalámbrica y la segunda a una red cableada. Dentro de este menú accederemos a **"Networking options"** y activamos las opciones **"Unix domain sockets"** y **"TCP/IP networking"** al completo. Después de activar estas opciones habilitamos unas opciones nuevas que nos salen en la parte superior de la lista, estas opciones empiezan por **"Transformation"**.
+* Executable file formats:
+    * Activamos la opción **"Kernel support for ELF binaries"** Permitirá al sistema ejecutar binarios ejecutables y enlazables. También añadimos **"Kernel support for MISC binaries"**.
+* File systems: Pseudo filesystem: Aquí activamos la opción de "/proc file system support", sin esta opción el sistema funcionaria pero muchos comandos tendría problemas de ejecución, ya que este directorio se crea en cada arranque proporcionando información sobre los procesos, kernel y el hardware disponible. Se activarán dos opciones por defectos que debemos dejar.
+
+* Device Drivers: 
+    * Character devices: Aquí activaremos la opción **"Enable TTY"** y todas las opciones que se marcaran de forma automática con ella. Esta opción nos permitirá poder abrir terminales en nuestro sistema.
+    * También activamos **"Network device support"**, para poder tener acceso a las unidades de almacenamiento en red.
+
+:::warning Aclaración muy importante
+También es posible no usar la imagen ***“initrd”*** y solo usar ***“vmlinuz”***. Pero es muy recomendable usar un arranque en dos fases. Aunque este no es el tema principal de este documento dejaré aquí un artículo en el blog explicando sobre ***“initrd”*** y su importancia.
+:::
+
+## Proceso para compilar un “Kernel” paso a paso
+
+1. Primero debemos descargar el kernel que vamos a instalar, en nuestro caso usaremos la versión **“5.15.83”**. Este podemos descargarlo desde la web https://www.kernel.org/. Con el siguiente comando podemos descargarlo en nuestra maquina.
+    ```jsx
+    wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.83.tar.xz
+    ```
+2. Para descomprimir este fichero comprimido usamos el comando:
+    ```jsx
+    tar -avxf linux-5.15.83.tar.xz
+    ```
+3. Instalamos todas las dependencias necesarias para que no de errores la compilación con el siguiente comando:
+    ```jsx
+    apt install gcc make perl libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf bc rsync pkg-config wget
+    ```
+4. En mi caso generará el fichero **“.config”** con los módulos actualmente en uso quitando el resto, esto lo haré con el comando:
+    ```jsx
+    make localmodconfig
+    ```
+5. Luego he quitado algunas opciones más con el comando: 
+    ```jsx
+    make menuconfig
+    ```
+6. Ahora compilamos el núcleo con las opciones que hemos introducido, podemos compilarlos de muchas formas, en mi caso lo haré creando unos paquetes ***".deb"*** que luego podemos instalar o desinstalar de forma sencilla. Esto se hace con el comando:
+    ```jsx
+    make -j4 bindeb-pkg
+    ```
+7. A continuación dejaré unas capturas para que veamos el tamaño del nuevo ***“Kernel”*** así como el de los paquetes deb y prueba de funcionamiento.
+
+### Prueba de funcionamiento
+
+* Ficheros del nuevo ***"Kernel"***:
+
+    ![Comprobación de los ficheros generados al compilar](/img/compilacion-kernel/kernel-files.png)
+
+* Comprobando el nuevo ***"Kernel"*** en funcionamiento:
+
+    ![Comprobando que el nuevo Kernel funciona](/img/compilacion-kernel/kernel-on.png)
