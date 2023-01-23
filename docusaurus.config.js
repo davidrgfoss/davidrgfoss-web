@@ -3,6 +3,8 @@
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const math = require('remark-math');
+const katex = require('rehype-katex');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -27,18 +29,42 @@ const config = {
           editUrl: 'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
+          remarkPlugins: [math],
+          rehypePlugins: [katex],
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
             'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
+          remarkPlugins: [math],
+          rehypePlugins: [katex],
+          postsPerPage: 10,
+          blogListComponent: '@theme/BlogListPage',
+          blogPostComponent: '@theme/BlogPostPage',
+          blogTagsListComponent: '@theme/BlogTagsListPage',
+          blogTagsPostsComponent: '@theme/BlogTagsPostsPage',
+          blogTitle: 'Blog',
+          blogDescription: 'Un lugar escondido de la red donde encontrar información de calidad :)',
+          blogSidebarCount: 5,
+          blogSidebarTitle: 'Todos los posts',
+          routeBasePath: 'blog',
+          truncateMarker: /<!--\s*(truncate)\s*-->/,
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
       }),
     ],
+  ],
+  stylesheets: [
+    {
+      href: 'https://cdn.jsdelivr.net/npm/katex@0.13.24/dist/katex.min.css',
+      type: 'text/css',
+      integrity:
+        'sha384-odtC+0UGzzFL/6PNoE8rX/SPcQDXBJ+uRepguP4QkPCm2LBxH3FA3y+fKSiJ+AmM',
+      crossorigin: 'anonymous',
+    },
   ],
 
   themeConfig:
