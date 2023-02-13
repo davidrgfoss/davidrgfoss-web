@@ -1,0 +1,108 @@
+---
+slug: Virtual Private Network
+title: Virtual Private Network
+authors: David
+tags: [davidrgfoss, seguridad, articulo]
+---
+
+Podríamos empezar por explicar que una VPN es una conexión segura entre un punto y otro. Iremos viendo los tipos de vpn mas usado asi como su funcionamiento.Podriamos empezar por explicar que una VPN es una conexión segura entre un punto y otro punto. 
+
+La seguridad puede cambiar según la configuración pero el método más actual es usar certificados basado en criptografía asimétrica, que podemos ver explicado en este [**“articulo sobre cifrado asimetrico”**](https://www.davidrgfoss.com/blog/Cifrado%20asimetrico) que yo escribí. Muy necesario leerlo para entender este artículo.
+
+<!--truncate-->
+
+## ¿Qué es una VPN?
+
+Las VPN nacieron por la necesidad de que los empleados pudieran acceder a la red interna de una empresa de forma segura. Esta conexión permite a los usuarios usar la red interna de dicha empresa como si estuviesen en su puesto de trabajo. Esto es posible gracias a lo visto anteriormente sobre la criptografía asimétrica, aunque inicialmente se usaban claves compartidas u otros métodos. No deja de ser un método para interconectar dos redes que no están conectadas de forma física y directa.
+
+![Esquema de una conexion vpn](./vpn-avast.jpg)
+
+Pongamos de ejemplo la anterior imagen que pertenece a la empresa “Avast”. En ella nos expone dos casos diferentes, en uno se usa VPN y en el otro no. Cuando no se usa como podemos ver tenemos una conexión entre dos máquinas, pero en el trayecto de esa conexión vemos que terceras partes pueden ver el contenido de los mensajes enviados o recibidos. Aunque en la actualidad esa conexión puede estar protegida de otras formas diferentes.
+Luego tenemos el caso contrario, el cliente se conecta desde el punto “VPN client” y este genera una conexión cifrada con “VPN server” que está conectado en la máquina destino. Como podemos ver entre “VPN client” y “VPN server” todos los datos parecen ir por un túnel cifrado, aparte en el destino tiene una dirección IP diferente.
+
+En resumen esto sería en esencia la finalidad de una “VPN”, hay que destacar que existen diversos métodos de configuración, este de la imagen sería conocido como “acceso remoto (access remote)”, pero a continuación también veremos otro como es el “sitio a sitio (peer to peer)”.
+
+:::info
+El cambio de dirección ip de la máquina origen se debe al uso de la propia vpn, la cual nos permite acceder a una red diferente a la nuestra como si estuviésemos físicamente allí. Digamos que mientras usamos la vpn aquí descrita es posible que el destino crea que nuestra máquina esté hasta en otro país
+:::
+
+### Tipos de VPN
+
+Dentro de lo que es una VPN podríamos definir diferentes tipos según su forma de funcionar o configuración, las más usadas que he mencionado en el punto anterior sería las de “acceso remoto” y “sitio a sitio”. Ahora ambas un poco más.
+
+#### Acceso remoto
+
+Estas suelen ser las más común para el usuario estándar, pues la mayoría de soluciones “VPN” comerciales la ofrecen de este tipo. Estas consisten en que yo que me encuentro en el punto “A” y que me quiero conectar a internet que en este caso sería el punto “C” no lo hagamos de forma directa.
+Al usar una solución “VPN” en este caso nuestra máquina tendrá configurado un programa como cliente, esto permitirá que nuestra máquina se conecte a otra red como si estuviese físicamente allí. En el caso anterior el uso que se le daría es acceder desde esa otra red a internet, aunque puede llegar a ser muy parecido al siguiente tipo “sitio a sitio” realmente pertenecería al acceso remoto por su funcionamiento.
+
+Su funcionamiento se puede resumir en:
+1. Máquina local se conecta a otra red con el programa cliente.
+2. Hacemos una conexión hasta el servidor destino permitiéndonos que estemos conectado como si estuviésemos en esa red.
+3. Accedemos a internet desde esa ubicación física pero de forma remota desde nuestra ubicación real.
+
+:::info
+Nuestros datos están protegidos desde el cliente al servidor, pero es posible acceder a ellos en el trayecto de nuestra máquina al programa cliente, y desde la red del servidor a la máquina del recurso solicitado. Esto se debe a que el cifrado que se ofrece tiene que ser cifrado por el cliente y descifrado por el servidor destino, pero no debemos preocuparnos ya que esa seguridad es una capa sobre la seguridad ya existente de otros protocolos como es “HTTPS”.
+:::
+
+#### Sitio a sitio
+
+Esta es la segunda opción más utilizada, y por su forma de funcionar será más usada por empresas que por clientes particulares. A continuación dejaré la imagen que vamos a usar como guía visual para la explicación.
+
+![Esquema de una conexion vpn](./vpn-peer.png)
+
+Como podemos ver en este caso tenemos dos redes diferentes conectadas por un túnel intermedio, puede recordarnos mucho al acceso remoto descrito anteriormente pero tiene una diferencia bastante notoria. Este tipo de configuración no tiene como objetivo que una máquina acceda a otra red como si estuviese físicamente dentro de dicha red, si no que el objetivo de este método es hacer que dos redes que no están juntas físicamente estén conectadas ambas como si formasen parte de la misma red. Aunque el funcionamiento final puede ser similar a tener dos redes interconectadas por un router, en este caso se añade una capa de protección aplicando uno de los diferentes tipos de cifrado disponibles como puede ser los visto en este artículo.
+
+Las máquinas de los usuarios no harán uso de un programa cliente, si no que se configurara dos máquinas que serán las encargadas de generar un túnel “VPN” entre ellas, estas máquinas cogerán cualquier petición de las máquinas de su red que vayan hacia la otra red y se encargan de enviarlo una a otras.
+Para que todo esto sea posible se hará uso de una tabla de enrutamiento, pues las máquinas de una red deben enviar la petición a la otra red sabiendo que esas peticiones deben pasar por estas dos máquinas respectivamente.
+
+Esto se solía configurar con dos máquinas haciendo de servidor, aunque a día de hoy se puede configurar con una haciendo de servidor y la otra siendo un cliente de esta red, convirtiéndose así en una mezcla entre el acceso remoto y el método de sitio a sitio.
+Este método tiene la ventaja que cualquier máquina conectada en una de esas dos redes puede acceder a los recursos de la otra como si estuviesen ambas dentro de la misma red, pero no nos permitiría acceder desde fuera a esta red como si estuviésemos físicamente allí.
+
+:::info
+El uso de este tipo de red, no está limitado a un origen y destino como es en el caso del acceso remoto, pues podemos tener diferentes redes conectadas usando el método de sitio a sitio, e incluso permitir el acceso remoto a estas redes. Al final la combinación de servicios permite un abanico amplio de posibilidades según nuestras necesidades.
+:::
+
+## Herramientas para crear VPNs
+
+Existen una gran variedad de herramientas para poder realizar lo que hemos explicado a lo largo de este artículo, generalmente un usuario medio contrata un servicio que le ofrece un cliente con datos de acceso y todo está automatizado. Pero podemos crear nosotros una “VPN” sin depender de una tercera parte que nos cobre por dicho servicio.
+
+Yo explicare un poco dos herramientas, una llamada “OpenVPN” y la otra “WireGuard”, ambas son conocidas y software libre. No puedo explicar todas las opciones y configuración de cada programa pues para eso tienen sus propias documentaciones así como sus propios archivos de configuración que vienen con comentarios.
+
+### OpenVPN
+
+Esta herramienta nació con la idea de sustituir la tecnología más implementada en su momento que era IPsec. A diferencia de IPsec la cual se ejecutaba a nivel de red, esta hace uso de 3 niveles diferentes, que son el de aplicaciones, el de red y el de enlace, siendo en el modelo OSI la capa 2,3 y 7 o en el modelo TCP/IP la capa 2,3 y 5.
+La necesidad de crear esta herramienta era la de poder ofrecer una solución de código abierto pero que también fuese fácil de utilizar para los usuarios y que ofreciera una capa de seguridad mejor.
+
+A día de hoy la mejor seguridad es la basada en criptografía asimétrica, aunque esto siempre estará sujeto al escenario en el que nos encontremos, pero es innegable que la tecnología SSL/TLS ha demostrado ser lo suficientemente segura. OpenVPN te ofrece como ventaja la capacidad de configurar este tipo de seguridad en sus conexiones.
+
+:::tip
+OpenVPN te ofrece una herramienta llamada “OpenVPN Access Server” que está disponible para la mayoría de distribuciones Linux usadas en los servidores, esta herramienta facilita enormemente su configuración. También tenemos distribuciones preparadas para dicho trabajo.
+
+Este tipo de herramientas con las que una parte de la comunidad no está conforme es un avance que facilita desde un portal de gestión web, la configuración de este servicio u otros de una forma cómoda.
+:::
+
+### WireGuard
+
+En el mundo del software libre existe algo que puede ser tan bueno como malo según la situación que es la diversidad y fragmentación de las ideas. Pues donde una persona crea algo para mejorar otra cosa u ofrecer alguna funcionalidad no existente, otras personas pueden trabajar sobre esa idea y mejorarla. También se puede dar el caso de que se trabaje en lo mismo de varias formas diferentes siendo contraproducente.
+
+Pero en este caso fue para bien, pues se creó esta herramienta, la cual viene con la misma idea con la que nació “OpenVPN”, ofrecer una herramienta más sencilla y potente para crear VPNs que las existente, en este caso “IPsec” y “OpenVPN”. 
+A nivel de seguridad ofrece bastantes similitudes a la herramienta anterior, pero con algunos protocolos mas nuevos tambien aceptados, su punto más fuerte respecto a la herramienta anterior es la facilidad o comodidad para realizar la misma tarea, pues aunque “OpenVPN” pareciera fácil respecto a “IPsec” a dia de hoy ya esta algo mas obsoleta en ese aspecto. De ahí la necesidad de que se le haya creado una herramienta de configuración web.
+
+WireGuard tiene la desventaja de ser bastante más nueva, ya que alcanzó la estabilidad o versión final de lanzamiento en marzo de 2020, mientras que las otras llevan más tiempo implementada en el mercado. Eso puede traer que tenga algún problema o vulnerabilidad todavía no descubierta, aunque todo apunta a que es bastante sólida. Sin duda es mucho más sencillo realizar las configuraciones en esta herramienta que en la anterior.
+
+### Comparación entre ambas herramientas
+
+En el punto anterior hemos hablado de las ventajas de WireGuard, aunque no todo es tan bonito tampoco. A nivel de cifrado, hacen uso de algoritmos diferentes, mientras que OpenVPN hace uso de la tecnología “OpenSSL” aportándole una gran variedad de algoritmos como puede ser “AES-256”, WireGuard no tiene dicha capacidad. Aun con este defecto, los algoritmos usados por WireGuard han demostrado ser también muy seguros, y su mayor ventaja que no requieren uso de instrucciones específicas en la “CPU” haciendo que los cálculos sean más rápido y con menos gastos de recursos.
+
+A nivel de funcionamiento en el modelo OSI, vemos que WireGuard solo funciona por “UDP”, esto tiene la ventaja de ser mucho más rápido y que gasta menos recursos que “OpenVPN”, pero de nuevo tiene su parte negativa. No proporciona la capacidad de ofuscar el tráfico al mismo tiempo que también por su forma de usar tiene que mantener una lista de las direcciones IP autorizadas. A nivel de privacidad WireGuard es un desastre, pues no ofrece ninguna capa de privacidad, mientras que con OpenVPN puedes ocultar tu ubicación, origen e impedir que cualquier persona sepa que estás conectado desde una “VPN”, mientras que con la otra herramienta sería sencillo ver que usar una “VPN”.
+
+Por último, volviendo al apartado de facilidad de uso, vemos que WireGuard es muy superior. Es más sencillo de usar, instalar, configurar, gasta menos recursos y es más rápido, aunque como suele pasar en la informática la comodidad va de la mano siempre con menos seguridad. Mientras que OpenVPN es más lento, gasta más recursos, te ofrece una seguridad mayor, más variedad de algoritmos de cifrado y la parte más importante para muchos usuarios, una privacidad mayor donde puedes ocultarte de forma casi completa en la red, con el coste de una mayor lentitud.
+Sobre qué OpenVPN sea más difícil de usar o configurar, pienso que es más por la antigüedad que nada tiene que ver con que sea más seguro o menos.
+
+## Conclusión
+
+Este artículo ha sido mucho menos técnico que el [**“anterior sobre la criptografía”**](https://www.davidrgfoss.com/blog/Cifrado%20asimetrico), pero porque quitando esa parte técnica pienso que para entender una vpn es más algo de conceptos que de conocimiento técnico. Existen más métodos para configurar una VPN que los aquí descritos pero también pienso que en la mayoría de escenarios nos encontraremos los dos tipos aquí explicado.
+
+He comentado dos herramientas que se usan actualmente señalando sus diferencias principales, esto nos será muy útil, porque en este artículo configuraremos ambos tipos de VPN con ambas herramientas, ahi sera algo mas rápido y conciso pues no veo necesario repetir explicaciones aquí expuesta o que podemos ver en la propia documentación de las herramientas.
+
+¡Espero que os haya sido util estas explicaciones!
