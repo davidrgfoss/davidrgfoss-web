@@ -16,8 +16,8 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/intro">
-            🗃️ Acceder a los manuales 🗃️
+            to="https://www.buymeacoffee.com/davidrgfoss">
+            ☕☕ Comprame un cafe!! ☕☕
           </Link>
         </div>
       </div>
