@@ -16,10 +16,10 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="https://www.buymeacoffee.com/davidrgfoss">
-            ☕☕ Comprame un cafe!! ☕☕
+            to="/docs/intro">
+            🗃️ Acceder a los manuales 🗃️
           </Link>
-          <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="davidrgfoss" data-description="Apoyame comprandome un cafe" data-message="Gracias por apoyar mi proyecto!" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+          <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="davidrgfoss" data-description="Apoyame comprandome un cafe!!" data-message="Apoyame comprandome un cafe!!" data-color="#40DCA5" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
         </div>
       </div>
     </header>
