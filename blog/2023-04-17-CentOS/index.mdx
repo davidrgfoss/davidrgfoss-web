@@ -1,0 +1,141 @@
+---
+slug: Fin de soporte para CentOS
+title: Fin de soporte para CentOS
+authors: David
+tags: [davidrgfoss, sistemas, articulo, CentOS, Red Hat, Rocky Linux, AlmaLinux]
+---
+
+Podríamos empezar por explicar que una VPN es una conexión segura entre un punto y otro. Iremos viendo los tipos de vpn mas usado asi como su funcionamiento.Podriamos empezar por explicar que una VPN es una conexión segura entre un punto y otro punto. 
+
+La seguridad puede cambiar según la configuración pero el método más actual es usar certificados basado en criptografía asimétrica, que podemos ver explicado en este [**“articulo sobre cifrado asimetrico”**](https://www.davidrgfoss.com/blog/Cifrado%20asimetrico) que yo escribí. Muy necesario leerlo para entender este artículo.
+
+<!--truncate-->
+
+## ¿Qué ha pasado con CentOS?
+
+CentOS era un sistema comunitario que estaba patrocinado por Red Hat, este sistema era una copia binaria del sistema de Red Hat Enterprise Linux. Esto hacía que gran parte de la comunidad y de empresas usará dicha distribución para poner en funcionamiento sus servidores, debido a que Red Hat es un referente en escenario de servidores.
+
+Red Hat fue comprada por IBM en el año 2018, esta nueva dirección pensaron que no tenía sentido tener CentOS cuando ya tenían como campo de prueba su otro sistema llamado Fedora. Debido a esto se anunció el fin del soporte para CentOS, siendo este fin la fecha estipulada por las licencias usadas, ambas fechas diferentes, en el caso de CentOS 7 el fin del soporte será el 30/06/2024 y en CentOS 8 será el 31/12/2021. A continuación veremos con más detalles lo ocurrido.
+
+:::danger Precaupcion
+Como os habeis podido dar cuenta la fecha de soporte de Centos 7 es superior a CentOS 8, esto se debe a diferentes usos de licencias, algunas personas han preferido hacer un downgrade, antes que cambiar de distribución. En mi propia opinión, nunca recomendaría un downgrade.
+:::
+
+
+## La historia de CentOS hasta su final
+
+Ahora haremos un pequeño resumen de lo que le sucedió a CentOS desde su inició hasta su final, aunque a día de hoy sigue existiendo el proyecto cómo vamos a ver a continuación carece de sentido alguno por lo que acabará muerto para el uso en escenarios reales.
+
+CentOS, cuyo nombre es un acrónimo de Community Enterprise Operating System, nació en 2004 como un proyecto comunitario independiente iniciado por un grupo de desarrolladores. El objetivo principal era proporcionar una distribución Linux de nivel empresarial, gratuita y de código abierto, basada en las fuentes de Red Hat Enterprise Linux (RHEL), una distribución comercial con soporte y servicios pagados.
+
+CentOS fue creado para satisfacer la demanda de usuarios y organizaciones que deseaban utilizar una distribución similar a RHEL pero sin incurrir en los costos asociados con las licencias y el soporte de Red Hat. Al ser un clon de RHEL, CentOS ofrecía compatibilidad, estabilidad y seguridad a nivel empresarial, lo que lo hizo popular entre organizaciones y administradores de sistemas que buscaban una alternativa gratuita a RHEL.
+
+Pero en la comunidad Linux existe demasiada dispersión por lo que muchos proyectos comunitarios no llegan tan lejos como otros, aparte de que si no tienen el soporte de una empresa detrás raramente pueden ser algo estable y fiable. Entonces aquí es donde entra la empresa Red Hat.
+
+En 2014, Red Hat anunció que patrocinaría oficialmente el proyecto CentOS. Aunque no se "compró" el proyecto en un sentido tradicional, la colaboración y el patrocinio de Red Hat significaron que la compañía brindaría recursos, apoyo y financiamiento al proyecto, y que algunos miembros clave del equipo de CentOS se unirían a Red Hat como empleados.
+
+Esta colaboración tenía como objetivo mejorar la calidad y la rapidez del desarrollo de CentOS, así como establecer una relación más estrecha entre CentOS y RHEL. Algunos desarrolladores de CentOS consideraron que la colaboración con Red Hat era beneficiosa para el proyecto, ya que les permitiría acceder a más recursos y experiencia técnica. Sin embargo, esta relación también le dio a Red Hat cierta influencia sobre la dirección y el enfoque del proyecto, como se evidenció en la transición de CentOS Linux a CentOS Stream en 2020.
+
+La relación entre Red Hat y CentOS fue una colaboración voluntaria entre las partes, en la que ambas partes acordaron trabajar juntas para el beneficio mutuo del proyecto CentOS y la distribución RHEL. Los desarrolladores de CentOS y la comunidad en general no estaban obligados a seguir las decisiones de Red Hat, pero muchos consideraron que la colaboración era beneficiosa para el proyecto, ya que proporcionaba recursos, apoyo y experiencia técnica adicionales.
+
+En el caso de la transición de CentOS Linux a CentOS Stream, fue una decisión tomada por Red Hat en colaboración con el equipo de CentOS el cual parte trabajaba directamente para Red Hat al ser contratados por ellos. La decisión de Red Hat de cambiar el enfoque de CentOS fue controvertida en la comunidad, ya que muchos usuarios y organizaciones dependían de la estabilidad y compatibilidad de CentOS Linux con RHEL. Como resultado, han surgido otros proyectos comunitarios, como Rocky Linux y AlmaLinux, que buscan llenar el vacío dejado por CentOS Linux al proporcionar una distribución compatible con RHEL y enfocada en la estabilidad.
+
+
+Cabe destacar que CentOS se basa en el código fuente de Red Hat Enterprise Linux (RHEL), que está disponible bajo la Licencia Pública General de GNU (GPL). La GPL permite a cualquiera tomar el código fuente y modificarlo, redistribuirlo y crear derivados, siempre que también se libere bajo la misma licencia. Por lo tanto, la influencia de Red Hat sobre CentOS no violaba ninguna ley ni licencia, ya que CentOS estaba basado en el código de RHEL, que se distribuye bajo una licencia de código abierto.
+
+
+### La historia de Red Hat
+
+Red Hat es una empresa de software fundada en 1993 por Bob Young y Marc Ewing. La compañía se especializa en soluciones de software empresarial de código abierto y tiene su sede en Raleigh, Carolina del Norte, Estados Unidos. A continuación, hare un pequeño resumen sobre su trayectoria, ya que no le veo sentido explicar toda la historia con profundidad, cuando nuestro enfoque debe ser más la transición:
+
+1. Primeros años: Red Hat comenzó como una distribuidora de software Linux, lanzando la distribución Red Hat Linux en 1994. Esta distribución fue una de las primeras en empaquetar el núcleo Linux junto con aplicaciones y herramientas de código abierto en un formato fácil de instalar y usar.
+
+2. Enfoque empresarial: A medida que Linux y el software de código abierto ganaron popularidad, Red Hat decidió centrarse en soluciones empresariales y en 2000 lanzó Red Hat Enterprise Linux (RHEL), una distribución Linux de nivel empresarial con soporte y servicios comerciales. RHEL se convirtió en la base del negocio de Red Hat y sigue siendo una parte importante de sus ingresos.
+
+3. Crecimiento y expansión: A lo largo de los años, Red Hat expandió su cartera de productos y servicios, incluidos middleware, soluciones de nube, virtualización y almacenamiento. Además, Red Hat adquirió varias empresas para fortalecer su posición en el mercado y aumentar su oferta de soluciones empresariales, como JBoss (middleware) y Gluster (almacenamiento).
+
+4. Contribución a la comunidad de código abierto: Red Hat ha sido un actor importante en la comunidad de código abierto y ha contribuido a numerosos proyectos de código abierto a lo largo de los años, incluidos GNOME, oVirt, OpenStack y Kubernetes. Además, Red Hat ha patrocinado y colaborado en proyectos comunitarios como Fedora y CentOS.
+
+5. Adquisición por IBM: En octubre de 2018, IBM anunció que adquiriría Red Hat por aproximadamente 34 mil millones de dolares, una de las mayores adquisiciones en la historia de la tecnología. La adquisición se completó en julio de 2019. IBM adquirió Red Hat para fortalecer su posición en el mercado de la nube híbrida y aprovechar la experiencia y las soluciones de código abierto de Red Hat para expandir su cartera de servicios en la nube.
+
+La adquisición de Red Hat por parte de IBM fue un reconocimiento de la importancia del software de código abierto y de las soluciones empresariales basadas en Linux en la industria de la tecnología. La combinación de IBM y Red Hat busca ofrecer una plataforma de nube híbrida más sólida y competitiva, al tiempo que continúa apoyando y contribuyendo a la comunidad de código abierto.
+
+## Conclusión, sobre lo ocurrido con CentOS
+
+Red Hat anunció la transición de CentOS Linux a CentOS Stream en diciembre de 2020. La decisión de cambiar el enfoque de CentOS se tomó para permitir a los desarrolladores y a la comunidad en general contribuir y colaborar más estrechamente con el desarrollo de Red Hat Enterprise Linux (RHEL) y mejorar el flujo de retroalimentación entre Red Hat y la comunidad.
+
+CentOS Stream actúa como una versión de desarrollo intermedia entre Fedora y RHEL, lo que permite a la comunidad tener una visión anticipada de las características y cambios que se incorporarán en futuras versiones de RHEL. Además, al permitir a los desarrolladores y usuarios contribuir al proceso de desarrollo de RHEL, Red Hat espera fomentar una mayor innovación y colaboración en el ecosistema RHEL.
+
+Respecto a la compra de Red Hat por parte de IBM, en 2019, es posible que haya influido en la dirección y las decisiones estratégicas de la compañía, incluido el enfoque de CentOS. La adquisición de Red Hat por IBM fue un movimiento importante en la industria, ya que IBM buscaba expandir su cartera de servicios en la nube y aprovechar la experiencia y las soluciones de código abierto de Red Hat.
+
+Si bien no se puede afirmar con certeza que la adquisición de Red Hat por parte de IBM fue el único factor en la decisión de cambiar la dirección de CentOS, es probable que la adquisición haya influido en la estrategia general y las decisiones de Red Hat, incluidas las relacionadas con CentOS.
+
+En resumen, el cambio en la dirección del proyecto CentOS probablemente fue el resultado de una combinación de factores, que incluyen la necesidad de una mayor colaboración y retroalimentación con la comunidad, así como cambios en la estrategia y las prioridades de Red Hat después de su adquisición por IBM.
+
+:::info Detalle a tener en cuenta
+Como podéis imaginar, tener una distribución que ha dejado de lado la estabilidad, para pasar a ser un desarrollo más enfocado en probar paquetes nuevos no tiene ningun sentido en un escenario de servidores reales, por lo que estas decisiones han provocado la muerte de CentOS en un mercado real, pasando a ser solo un campo de prueba para Red Hat y sus derivados.
+:::
+
+### Derivados de Red Hat
+
+Aunque a continuación veremos algunas alternativas a las que podemos migrar en caso de estar usando CentOS, me gustaría explicar un poco porque existe dicha opción, o porque Red Hat permite que existan copias binarias de sus sistema.
+
+Red Hat permite que existan derivados de su proyecto, principalmente porque Red Hat Enterprise Linux (RHEL) se basa en software de código abierto y se distribuye bajo la Licencia Pública General de GNU (GPL). La GPL, y muchas otras licencias de código abierto, permiten a cualquiera tomar el código fuente, modificarlo, redistribuirlo y crear derivados, siempre y cuando también se libere bajo la misma licencia.
+
+Existen varias razones por las que Red Hat y otros proyectos de código abierto permiten derivados:
+
+Filosofía de código abierto: La esencia del software de código abierto es permitir que otros utilicen, modifiquen y compartan el código. Al permitir derivados, Red Hat respeta y fomenta los principios y la cultura del software de código abierto.
+
+Innovación y colaboración: Permitir que otros creen derivados de RHEL puede llevar a nuevas ideas y enfoques, que a su vez pueden beneficiar a RHEL y a la comunidad de código abierto en general. Al permitir derivados, Red Hat fomenta la colaboración y la innovación en la comunidad.
+
+Retroalimentación y mejoras: Los derivados pueden ayudar a identificar problemas y oportunidades de mejora en RHEL. Al trabajar con la comunidad y recibir retroalimentación de los usuarios de derivados, Red Hat puede mejorar y fortalecer RHEL.
+
+Expansión del ecosistema: Los derivados permiten a Red Hat expandir su alcance y ecosistema al atraer a usuarios y desarrolladores que quizás no estén interesados ​​en suscribirse a los servicios comerciales de RHEL. Al permitir derivados, Red Hat puede aumentar su base de usuarios y promover el uso de tecnologías basadas en RHEL.
+
+Dicho esto, Red Hat también gana dinero a través de suscripciones comerciales, soporte y servicios para RHEL. Aunque existen derivados gratuitos como CentOS, Rocky Linux y AlmaLinux, muchas organizaciones optan por suscribirse a RHEL debido al soporte oficial, la estabilidad y las garantías que ofrece Red Hat. Estos servicios comerciales son un factor importante en el modelo de negocio de Red Hat, y la existencia de derivados no impide que Red Hat tenga éxito en este aspecto.
+
+## Alternativas a CentOS y Red Hat
+
+Al ser software libre como hemos comentado hace un momento, tenemos diferentes opciones que pueden ser una alternativa libre y gratuita que nos proporcionen lo mismo que nos proporcionaba CentOS, ya que un sistema sin soporte no es seguro para un entorno real, asi como un sistema que no ofrece estabilidad al actualizarse de forma constante a paquetes nuevos o de pruebas. Aunque a continuación veremos 5 alternativas diferentes, antes que nada me gustaría explicar algo de forma general que servira como explicación para todas las alternativas y así no repetimos la información.
+
+Todas las alternativas, intentan seguir el rumbo de ser una copia binaria de Red Hat Enterprise Linux abreviado en RHEL, por lo tanto usemos una alternativa u otra los cambios son mínimos, pues la intención es ofrecer el mismo producto que ofrece Red Hat. Aunque algunas alternativas puedan tener un enfoque diferente en algún aspecto, en general será algo mínimo, si notaremos diferencia en que se enfoca dicha distribución, pues veremos algunas que tienen un enfoque concreto para el uso de unas herramientas.
+
+* AlmaLinux: es un fork de RHEL 8 diseñado para ser una alternativa a CentOS 8. La distribución ofrece estabilidad y compatibilidad con RHEL, lo que facilita la migración de los usuarios de CentOS. Cuenta con soporte a largo plazo (hasta 2029) y una comunidad activa y en crecimiento. AlmaLinux es financiado y respaldado por CloudLinux, una empresa con experiencia en el desarrollo de distribuciones de Linux empresariales. En general, AlmaLinux es una opción sólida para aquellos que buscan una alternativa a CentOS.
+
+* Rocky Linux: es otra distribución basada en RHEL 8 creada para llenar el vacío dejado por CentOS 8. Fundada por Gregory Kurtzer, uno de los cofundadores de CentOS, Rocky Linux también promete ser compatible y estable como CentOS. La distribución cuenta con soporte a largo plazo y una comunidad activa. Aunque es un proyecto relativamente nuevo, ha ganado tracción rápidamente y tiene el potencial de convertirse en una opción sólida para usuarios empresariales.
+
+* VZLinux: es una distribución basada en RHEL creada por Virtuozzo, una empresa especializada en virtualización y soluciones de infraestructura en la nube. VZLinux está diseñado para ser compatible con CentOS y RHEL, pero también incluye características y optimizaciones específicas para entornos virtualizados y en la nube. Aunque VZLinux es una opción interesante para quienes buscan una distribución compatible con CentOS con enfoque en virtualización, su adopción y comunidad podrían ser más limitadas en comparación con AlmaLinux y Rocky Linux.
+
+* euroLinux: es una distribución basada en RHEL que se centra en ofrecer un entorno empresarial estable y compatible. La empresa detrás de euroLinux tiene experiencia en el desarrollo de soluciones de Linux empresariales y ofrece soporte comercial y asesoría técnica. Aunque euroLinux es una opción válida para aquellos que buscan un entorno compatible con RHEL y CentOS, su enfoque en el mercado europeo y su modelo de negocio basado en el soporte comercial podrían limitar su adopción y comunidad en comparación con distribuciones como AlmaLinux y Rocky Linux.
+
+* Oracle Linux: es una distribución basada en RHEL desarrollada por Oracle. Ofrece compatibilidad con RHEL y un entorno estable, así como características adicionales como el Kernel Unbreakable. Oracle Linux está optimizado para funcionar con otros productos y servicios de Oracle, como Oracle Database, Oracle VM y Oracle Cloud Infrastructure. La distribución ofrece soporte comercial a través de la suscripción Oracle Linux Premier Support y acceso gratuito a sus repositorios de software y actualizaciones. Aunque Oracle Linux tiene una base de usuarios sólida, su adopción y comunidad pueden ser más limitadas en comparación con otras distribuciones basadas en RHEL, en parte debido al enfoque de Oracle en sus propios productos y servicios.
+
+:::info Unbreakable Enterprise Kernel (UEK)
+El Unbreakable Enterprise Kernel (UEK) es un kernel de Linux desarrollado por Oracle específicamente para su distribución de Oracle Linux. El objetivo principal de UEK es proporcionar un kernel optimizado y altamente confiable para entornos empresariales y cargas de trabajo intensivas.
+:::
+
+En resumen, todas estas distribuciones están diseñadas para ser alternativas a CentOS y ofrecen compatibilidad con RHEL. AlmaLinux y Rocky Linux parecen tener comunidades más activas y un enfoque más claro en proporcionar una experiencia similar a CentOS, lo que las convierte en opciones sólidas para usuarios empresariales.
+
+VZLinux es interesante para aquellos que buscan una distribución compatible con CentOS y RHEL con un enfoque en virtualización y soluciones en la nube. Sin embargo, su adopción y comunidad podrían ser más limitadas en comparación con AlmaLinux y Rocky Linux.
+
+EuroLinux ofrece un entorno estable y compatible con RHEL y CentOS, pero su enfoque en el mercado europeo y su modelo de negocio basado en el soporte comercial podrían limitar su adopción y comunidad.
+
+Oracle Linux es una opción viable para quienes buscan reemplazar CentOS y desean aprovechar la integración con otros productos y servicios de Oracle, así como el Kernel Unbreakable optimizado. No obstante, su adopción y comunidad podrían ser más limitadas debido al enfoque de Oracle en sus propios productos y a la percepción de la empresa en la comunidad de código abierto.
+
+La elección entre estas distribuciones dependerá de las necesidades y preferencias específicas de cada usuario, como el soporte, la comunidad, las características adicionales y la integración con productos y servicios específicos.
+
+## Conclusión final
+
+En este artículo hemos hablado solamente de alternativas equivalentes a CentOS debido a su fin de soporte, es cierto que tambien podriamos tomar otras distribuciones como Debian, opensuse…etc Pero creo que cambiar a un sistema que puede ser algo diferente o incluso totalmente diferente al que estamos usando actualmente en un escenario real de servidores puede ser una locura, ya que dejarían de funcionar bastantes cosas.
+
+Por lo tanto a mi parecer quedan 3 opciones viable, que serían las siguientes:
+
+1. Migrar a Red Hat Enterprise Linux, lo cual es un proceso bastante sencillo, pues solo tendremos que crearnos una cuenta y obtener una licencia, una vez migrado usando el script de migración ofrecido por la propia empresa podremos migrar sin apenas darnos cuenta del cambio, solo que en el proceso se nos pedirá el nombre de usuario y contraseña de la cuenta que tiene la licencia para poder activar el uso de los repositorios y soporte de actualizaciones.
+
+2. Migrar a otras alternativas como puede ser AlmaLinux usando también el script proporcionado, en el caso de que esta alternativa nos proporcione dicho script, y al ser gratuito no hará falta el proceso de usuarios con licencias para activar el soporte.
+
+3. Cambiar a CentOS Stream, esta opción sin duda es la menos recomendable a mi parecer, porque perdemos la estabilidad que teníamos al usar paquetes en prueba y convertirse en una especie de rolling release.
+
+A continuación dejo un enlace a un artículo de mi web donde vemos el proceso de migrar desde CentOS 8 a AlmaLinux 8, así como la posterior actualización a AlmaLinux 9.
+
+[**“Proceso para migrar desde CentOS 8 a AlmaLinux 9”**](https://www.davidrgfoss.com/docs/administracion-de-sistemas-operativos/Migracion-CentOS)

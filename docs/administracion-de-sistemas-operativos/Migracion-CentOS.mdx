@@ -1,0 +1,89 @@
+---
+sidebar_position: 5
+---
+import ReactPlayer from 'react-player'
+
+# Migración de un sistema CentOS hacia AlmaLinux 9
+
+## Requisitos
+
+Antes que nada, recomiendo leer este artículo donde se habla del fin del soporte de CentOS y todo lo sucedido.
+
+Para este proceso necesitaremos una máquina con CentOS 8, no sirve versiones superiores ni Stream, también necesitaremos acceso a internet para poder hacer la migración hacia AlmaLinux. El sistema usado tendrá una configuración básica con entorno de escritorio Gnome, aunque en servidores no es habitual tener entorno gráfico aquí se usará para ver un cambio más notorio o visible en el proceso.
+
+## AlmaLinux
+
+En mi caso he escogido la alternativa de AlmaLinux por las siguientes razones:
+
+* Compatibilidad: AlmaLinux fue diseñada específicamente para ser una alternativa a CentOS y ser binariamente compatible con RHEL. Esto significa que los usuarios pueden migrar fácilmente de CentOS a AlmaLinux sin enfrentar problemas de compatibilidad en su infraestructura existente.
+
+* Estabilidad y soporte: AlmaLinux ofrece una estabilidad similar a CentOS 8 y cuenta con soporte a largo plazo (hasta 2029), lo que garantiza que los usuarios tengan actualizaciones y correcciones de seguridad durante un período prolongado. Esto es especialmente importante para entornos de producción donde la estabilidad y el soporte son cruciales.
+
+* Comunidad activa: AlmaLinux cuenta con una comunidad activa y en crecimiento de usuarios y desarrolladores. Esto asegura que la distribución seguirá siendo mantenida, mejorada y respaldada por una base sólida de colaboradores.
+
+* Financiación y dirección: AlmaLinux es patrocinada por CloudLinux, una empresa con experiencia en la creación y el mantenimiento de distribuciones de Linux empresariales. Además, la dirección del proyecto se ha estructurado como una fundación sin fines de lucro, lo que garantiza que el proyecto sea independiente y esté enfocado en los intereses de la comunidad.
+
+### Proceso de migración de CentOS 8 a AlmaLinux 8
+
+Dejare por escrito los comandos usados asi como un video del proceso completo.
+
+* Primero actualizamos nuestro sistema:
+```jsx
+sudo dnf update -y
+```
+
+* Ahora descargamos el script de migración y lo ejecutamos:
+```jsx
+curl -O https://raw.githubusercontent.com/AlmaLinux/almalinux-deploy/master/almalinux-deploy.sh
+sudo bash almalinux-deploy.sh
+```
+
+#### Video del proceso de migración
+
+
+<ReactPlayer playing={false} controls pip={true} stopOnUnmount={false} url='/videos/migracion-centos/migrate-centos3.mp4'/>
+
+### Proceso de actualización de AlmaLinux 8 a AlmaLinux 9
+
+Es un proceso algo mas complejo que la migración pero sigue siendo bastante sencillo, primero debemos preparar el sistema operativo para el proceso desactivando dos cosas que nos impedira dicha actualización, debemos de asegurarnos que “selinux” estara desactivado asi como el “ZoneDrifting” de nuestro cortafuegos, esto se hara configurando el valor “disabled” y el valor “no” respectivamente para cada opción.
+
+```jsx title="Desactivar selinux en el fichero /etc/sysconfig/selinux"
+# Modificamos el siguiente parametro para desactivar selinux
+SELINUX=disabled
+```
+
+```jsx title="Desactivar ZoneDrifting en el fichero /etc/firewalld/firewalld.conf"
+# Modificamos el siguiente parametro para desactivar ZoneDrifting
+AllowZoneDrifting=no
+reboot
+```
+* Ahora añadimos el repositorio que contiene el script que nos permitira automatizar el upgrade de versión:
+
+```jsx title="Añadir repositorio de actualización"
+curl https://repo.almalinux.org/elevate/testing/elevate-testing.repo -o /etc/yum.repos.d/elevate-testing.repo
+rpm --import https://repo.almalinux.org/elevate/RPM-GPG-KEY-ELevate
+dnf update
+dnf install leapp-upgrade leapp-data-almalinux
+```
+
+A continuación ejecutaremos el proceso de upgrade, aunque antes haremos un preupgrade para asegurarnos que todo es compatible y no hay nada que nos lo impida, en caso de que algo lo impida el mismo script nos avisara para desactivarlo, en nuestro caso ya lo hemos desactivado con antelación. También hay que mencionar que el proceso de upgrade, cuando termine habrá que reiniciar ya que se nos habrá creado una entrada en el menú de arranque que será la escogida para iniciar por defecto y continuará con el proceso de actualización. Aunque veamos que se iniciará en modo emergencia es aconsejable no tocar nada, hasta que se reinicie de forma automática.
+Esta entrada no es más que una imagen de arranque creada para poder modificar el sistema sin que esté en ejecución todos los procesos y evitar errores.
+
+A continuación ejecutamos esto comandos para realizar el “upgrade”:
+
+```jsx title="Ejecutar proceso de actualización"
+leapp preupgrade
+leapp upgrade
+reboot
+```
+:::tip Consejo
+Aunque nos podemos saltar la parte del preupgrade, ya que al hacer el upgrade realizará dicho proceso antes lo hayamos hecho o no, es aconsejable según la documentación realizarlo, a mi parecer da un poco lo mismo pero siempre pienso que es mejor seguir la documentación del que desarrolló dicha herramienta.
+:::
+
+#### Video del proceso de actualización:
+
+<ReactPlayer playing={false} controls pip={true} stopOnUnmount={false} url='/videos/migracion-centos/update-almalinux3.mp4'/>
+
+## Conclusión
+
+Como hemos podido ver el proceso de migración está automatizado por los propios desarrolladores, esto nos permite tener un proceso más o menos sencillo sin que requiera grandes conocimientos por parte del técnico encargado. Aun asi es algo que siempre se debe hacer con cuidado en un entorno de producción pues podemos joder el funcionamiento de una empresa entera.

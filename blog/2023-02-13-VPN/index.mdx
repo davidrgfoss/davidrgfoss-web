@@ -22,8 +22,8 @@ Luego tenemos el caso contrario, el cliente se conecta desde el punto “VPN cli
 
 En resumen esto sería en esencia la finalidad de una “VPN”, hay que destacar que existen diversos métodos de configuración, este de la imagen sería conocido como “acceso remoto (access remote)”, pero a continuación también veremos otro como es el “sitio a sitio (peer to peer)”.
 
-:::info
-El cambio de dirección ip de la máquina origen se debe al uso de la propia vpn, la cual nos permite acceder a una red diferente a la nuestra como si estuviésemos físicamente allí. Digamos que mientras usamos la vpn aquí descrita es posible que el destino crea que nuestra máquina esté hasta en otro país
+:::info Curiosidad
+El cambio de dirección ip de la máquina origen se debe al uso de la propia vpn, la cual nos permite acceder a una red diferente a la nuestra como si estuviésemos físicamente allí. Digamos que mientras usamos la vpn aquí descrita es posible que el destino crea que nuestra máquina esté hasta en otro país.
 :::
 
 ### Tipos de VPN
@@ -40,7 +40,7 @@ Su funcionamiento se puede resumir en:
 2. Hacemos una conexión hasta el servidor destino permitiéndonos que estemos conectado como si estuviésemos en esa red.
 3. Accedemos a internet desde esa ubicación física pero de forma remota desde nuestra ubicación real.
 
-:::info
+:::info Seguridad de los datos
 Nuestros datos están protegidos desde el cliente al servidor, pero es posible acceder a ellos en el trayecto de nuestra máquina al programa cliente, y desde la red del servidor a la máquina del recurso solicitado. Esto se debe a que el cifrado que se ofrece tiene que ser cifrado por el cliente y descifrado por el servidor destino, pero no debemos preocuparnos ya que esa seguridad es una capa sobre la seguridad ya existente de otros protocolos como es “HTTPS”.
 :::
 
@@ -58,7 +58,7 @@ Para que todo esto sea posible se hará uso de una tabla de enrutamiento, pues l
 Esto se solía configurar con dos máquinas haciendo de servidor, aunque a día de hoy se puede configurar con una haciendo de servidor y la otra siendo un cliente de esta red, convirtiéndose así en una mezcla entre el acceso remoto y el método de sitio a sitio.
 Este método tiene la ventaja que cualquier máquina conectada en una de esas dos redes puede acceder a los recursos de la otra como si estuviesen ambas dentro de la misma red, pero no nos permitiría acceder desde fuera a esta red como si estuviésemos físicamente allí.
 
-:::info
+:::info Información extra
 El uso de este tipo de red, no está limitado a un origen y destino como es en el caso del acceso remoto, pues podemos tener diferentes redes conectadas usando el método de sitio a sitio, e incluso permitir el acceso remoto a estas redes. Al final la combinación de servicios permite un abanico amplio de posibilidades según nuestras necesidades.
 :::
 
@@ -75,7 +75,7 @@ La necesidad de crear esta herramienta era la de poder ofrecer una solución de 
 
 A día de hoy la mejor seguridad es la basada en criptografía asimétrica, aunque esto siempre estará sujeto al escenario en el que nos encontremos, pero es innegable que la tecnología SSL/TLS ha demostrado ser lo suficientemente segura. OpenVPN te ofrece como ventaja la capacidad de configurar este tipo de seguridad en sus conexiones.
 
-:::tip
+:::tip Recomendación para principiantes
 OpenVPN te ofrece una herramienta llamada “OpenVPN Access Server” que está disponible para la mayoría de distribuciones Linux usadas en los servidores, esta herramienta facilita enormemente su configuración. También tenemos distribuciones preparadas para dicho trabajo.
 
 Este tipo de herramientas con las que una parte de la comunidad no está conforme es un avance que facilita desde un portal de gestión web, la configuración de este servicio u otros de una forma cómoda.
