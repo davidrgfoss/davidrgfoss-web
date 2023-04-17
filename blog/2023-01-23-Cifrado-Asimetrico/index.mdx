@@ -23,7 +23,7 @@ Entender cómo funciona este cifrado requiere un poco de imaginación, para este
 3. Antonio cuando recibe dicho mensaje puede descifrarlo con su clave privada para leerlo.
 Como hemos podido ver es un proceso sencillo, la idea consiste en mandar un mensaje que solo la otra persona pueda ver, ninguna persona más podría leer dicho mensaje sin tener la clave privada. 
 
-:::tip
+:::tip Consejo de seguridad
 Como habéis podido deducir, la clave privada jamás se le debe pasar a nadie, la protección de dicha clave es primordial, en caso de ser comprometida podrían leerse todos los mensajes cifrados con la clave pública pareja de la privada.
 :::
 
@@ -31,13 +31,13 @@ Como habéis podido deducir, la clave privada jamás se le debe pasar a nadie, l
 
 Una vez hemos entendido el funcionamiento de este tipo de cifrado, hablamos sobre el procedimiento técnico que permite que esto suceda. Como vemos en el título de este apartado nos centraremos en el algoritmo “RSA” que son las iniciales de sus tres creadores Rievst, Shamir y Adleman. Aunque existen otros algoritmos diferentes basados en el mismo principio de dos claves, este es tal vez el más usado.
 
-:::tip
+:::tip Detalle a tener en cuenta
 Este tipo de algoritmos tienen un cálculo de creación, más o menos sencillos pero el cálculo para deshacerlo haría falta mucha capacidad de cálculo o potencia de cálculo computacional. Esto se le conoce como un método de criptografía de un único sentido.
 :::
 
 El cálculo para poder crear una clave de cifrado RSA se basa en el uso de números [**primos**](https://es.wikipedia.org/wiki/N%C3%BAmero_primo), [**coprimos**](https://es.wikipedia.org/wiki/N%C3%BAmeros_coprimos) y una operación conocida como módulo. Esta operación se basa en el resto que da una división. Usaremos de ejemplo números pequeños, esto se hace con números realmente grandes y con un relleno de bits al cifrar. Yo intentaré explicarlo de una forma sencilla y entendible. A continuación dejaré una imagen con un esquema que vamos a intentar explicar.
 
-:::caution
+:::caution Ejemplificación de las ecuaciones
 Las ecuaciones como $3*27=1\;(mod\;40)$ que veremos más adelante realmente se escriben $3*27=1\;(40)$, yo especifico el mod para que se tenga una imagen más clara de la operación que se está realizando.
 :::
 
@@ -53,7 +53,7 @@ Las ecuaciones como $3*27=1\;(mod\;40)$ que veremos más adelante realmente se e
 8. Ahora volviendo a nuestro caso, tenemos que encontrar un número que al ser el [**"multiplicador inverso"**](https://es.wikipedia.org/wiki/Inverso_multiplicativo_(aritm%C3%A9tica_modular)) junto a $e$ usando de módulo $φ$ nos devuelva el mismo valor, esto es posible gracias a que uno es coprimo del otro, si no sería totalmente imposible. La operación a realizar sería la siguiente ecuación de [**"congruencia lineal"**](https://es.wikipedia.org/wiki/Teorema_de_congruencia_lineal) $e*d=1\;(mod\;φ)$, en nuestro caso sería $3*27=1\;(mod\;40)$. Al realizar el mod 40, sobre $3*27$ devuelve uno. El valor de $d$ nunca puede ser mayor o igual a 40 en este caso, simplemente habría que ir probando numero por numero, aunque esto no es eficiente ni útil para números grandes y por eso mismo existe el [**“Algoritmo de Euclides”**](https://es.wikipedia.org/wiki/Algoritmo_de_Euclides).
 9. Ya obtenido el valor de $d$ tendremos la parte privada de la clave que sería $(d,n)$ en nuestro caso $(27,55)$.
 
-:::info
+:::info Curiosidad sobre el cifrado
 Al usar números primos enormes con más de 100 dígitos ir probando número por número para dar con el valor de $d$ es casi imposible en la computación actual, al menos la que no es cuántica. Por eso mismo es tan importante proteger la clave privada, pues nadie sin ese valor les resulta imposible volver hacia atrás el cifrado, es muy fácil cifrar el fichero pero muy complejo regresar hacia atrás sin el valor de la clave privada.
 :::
 
@@ -70,7 +70,7 @@ Como hemos podido ver de la forma más sencilla posible que he podido así funci
 
 ## Firmas con nuestra clave
 
-:::caution
+:::caution Aviso
 A partir de este punto doy por hecho que entendemos como funciona los apartados anteriores por lo que será algo más breve.
 :::
 
@@ -78,7 +78,7 @@ La firma sigue el mismo proceso visto anteriormente, solo que en vez de cifrar c
 
 Estos dos casos aunque parecidos son diferentes, en el primer caso buscamos que ese fichero solamente pueda leerlo una persona. Mientras que en el segundo caso lo puede leer cualquier persona que tenga la clave pública ya que la intención es la de asegurar que ese fichero es nuestro. Como solo nosotros poseemos nuestra propia clave privada, o así debería ser estamos dando la autenticidad que ese mensaje o fichero es nuestro, ya que solo nosotros podríamos firmar(cifrar) con nuestra clave privada.
 
-:::tip
+:::tip Atención
 Aunque el uso u objetivo es diferente, realmente ambos caso el fichero no resultara legible porque estará cifrado.
 :::
 
@@ -91,7 +91,7 @@ Esto funciona de la siguiente forma, nosotros vamos a una entidad acreditada par
 
 Esto permite crear una red de confianza lo cual es el mayor fallo de este método de criptografía, saber si esa persona realmente es quien dice que es. Ahora con el certificado si otra persona nos pasa su clave pública suplantando a otra persona podremos comprobarlo con el certificado, este certificado no lo puede falsificar, ya que no puede firmar con la clave privada de la entidad autorizada para certificar. Aunque al igual que el caso anterior tendremos que confiar en esa autoridad certificadora.
 
-:::tip
+:::tip Curiosidad
 Nosotros mismos podemos crear un anillo de confianza con las claves de las personas en las que confiamos, así como ver que ha sido aprobada por otras personas de confianza y asegurarnos de la autenticidad. Aunque como en todos los casos la confianza en otras personas será esencial.
 :::
 
