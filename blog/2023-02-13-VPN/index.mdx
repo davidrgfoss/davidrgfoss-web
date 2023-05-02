@@ -7,7 +7,7 @@ tags: [davidrgfoss, seguridad, articulo]
 
 Podríamos empezar por explicar que una VPN es una conexión segura entre un punto y otro. Iremos viendo los tipos de vpn mas usado asi como su funcionamiento.Podriamos empezar por explicar que una VPN es una conexión segura entre un punto y otro punto. 
 
-La seguridad puede cambiar según la configuración pero el método más actual es usar certificados basado en criptografía asimétrica, que podemos ver explicado en este [**“articulo sobre cifrado asimetrico”**](https://www.davidrgfoss.com/blog/Cifrado%20asimetrico) que yo escribí. Muy necesario leerlo para entender este artículo.
+La seguridad puede cambiar según la configuración pero el método más actual es usar certificados basado en criptografía asimétrica, que podemos ver explicado en este [**“articulo sobre cifrado asimétrico"**](https://www.davidrgfoss.com/blog/Cifrado%20asimetrico) que yo escribí. Muy necesario leerlo para entender este artículo.
 
 <!--truncate-->
 
@@ -32,7 +32,7 @@ Dentro de lo que es una VPN podríamos definir diferentes tipos según su forma 
 
 #### Acceso remoto
 
-Estas suelen ser las más común para el usuario estándar, pues la mayoría de soluciones “VPN” comerciales la ofrecen de este tipo. Estas consisten en que yo que me encuentro en el punto “A” y que me quiero conectar a internet que en este caso sería el punto “C” no lo hagamos de forma directa.
+Estas suelen ser las más comunes para el usuario estándar, pues la mayoría de soluciones “VPN” comerciales la ofrecen de este tipo. Estas consisten en que yo que me encuentro en el punto “A” y que me quiero conectar a internet que en este caso sería el punto “C” no lo hagamos de forma directa.
 Al usar una solución “VPN” en este caso nuestra máquina tendrá configurado un programa como cliente, esto permitirá que nuestra máquina se conecte a otra red como si estuviese físicamente allí. En el caso anterior el uso que se le daría es acceder desde esa otra red a internet, aunque puede llegar a ser muy parecido al siguiente tipo “sitio a sitio” realmente pertenecería al acceso remoto por su funcionamiento.
 
 Su funcionamiento se puede resumir en:
@@ -138,7 +138,7 @@ Otro detalle importante para señalar sobre esta herramienta es, que es una VPN 
 
 Sin embargo, en la práctica, a menudo configuramos WireGuard en una topología "servidor-cliente" simplemente porque es más fácil de entender y gestionar, especialmente en redes más grandes. En este escenario, un nodo actúa como un "servidor", aceptando conexiones de otros nodos, y los otros nodos actúan como "clientes", iniciando conexiones solo con el servidor.
 
-Podriamos configurar cada máquina para que actúe como "cliente" de un servidor y al mismo tiempo como "servidor" para otras máquinas "clientes". Solo necesitarías configurar el archivo de configuración de WireGuard (wg0.conf) en cada máquina con la información apropiada para cada "peer" con el que quieras que se conecte.
+Podríamos configurar cada máquina para que actúe como "cliente" de un servidor y al mismo tiempo como "servidor" para otras máquinas "clientes". Solo necesitarías configurar el archivo de configuración de WireGuard (wg0.conf) en cada máquina con la información apropiada para cada "peer" con el que quieras que se conecte.
 
 Por ejemplo, podrías tener una máquina A que actúa como servidor para las máquinas B y C. La máquina B podría actuar a su vez como servidor para la máquina D. En este caso, la máquina A tendría la información de las máquinas B y C en su archivo de configuración, y la máquina B tendría la información de las máquinas A y D en su archivo de configuración.
 
@@ -213,7 +213,7 @@ A nivel de funcionamiento en el modelo OSI, vemos que WireGuard solo funciona po
 Volviendo al apartado de facilidad de uso, vemos que WireGuard es muy superior. Es más sencillo de usar, instalar, configurar, gasta menos recursos y es más rápido, aunque como suele pasar en la informática la comodidad va de la mano siempre con menos seguridad. Mientras que OpenVPN es más lento, gasta más recursos, te ofrece una seguridad mayor, más variedad de algoritmos de cifrado y la parte más importante para muchos usuarios, una privacidad mayor donde puedes ocultarte de forma casi completa en la red, con el coste de una mayor lentitud.
 Sobre qué OpenVPN sea más difícil de usar o configurar, pienso que es más por la antigüedad que nada tiene que ver con que sea más seguro o menos.
 
-Para terminar con esta comparativa, hare un resumen a modo de esquema donde veremos los apartados analizados en cada herramietna y su resultado.
+Para terminar con esta comparativa, haré un resumen a modo de esquema donde veremos los apartados analizados en cada herramienta y su resultado.
 
 
 **1. Configuración y facilidad de uso**
@@ -248,6 +248,6 @@ He comentado dos herramientas que se usan actualmente señalando sus diferencias
 
 En última instancia, tanto OpenVPN como WireGuard son soluciones VPN sólidas, y la elección entre las dos dependerá de tus prioridades.
 
-En este artículo configuraremos ambos tipos de VPN con ambas herramientas, ahi sera algo mas rápido y conciso pues no veo necesario repetir explicaciones aquí expuesta o que podemos ver en la propia documentación de las herramientas.
+En este [**"artículo configuraremos ambos tipos de VPN con ambas herramientas"**](https://www.davidrgfoss.com/docs/seguridad-redes/VPN), ahí será algo más rápido y conciso pues no veo necesario repetir explicaciones aquí expuesta o que podemos ver en la propia documentación de las herramientas.
 
-¡Espero que os haya sido util estas explicaciones!
+¡Espero que os haya sido útil estas explicaciones!
