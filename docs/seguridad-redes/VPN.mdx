@@ -1,0 +1,670 @@
+---
+sidebar_position: 1
+---
+import ReactPlayer from 'react-player'
+
+# Configuraciónes de VPN
+
+## Requisitos
+
+Antes que nada, recomiendo leer este artículo donde se habla de [**“los tipos de VPN”**](https://www.davidrgfoss.com/blog/Virtual%20Private%20Network), tambien encontraremos enlazado otro articulo sobre el cifrado RSA.
+
+Para este manual vamos a necesitar un escenario que se compondra de 4 maquinas con Debian 11, estas maquinas se configuraran de forma diferente. Habra escenarios donde solo usaremos 3 de ellas como en el acceso remoto. Explicare la configuración de cada una antes de cada apartado.
+
+## OpenVPN Access Remote
+
+Para realizar este escenario haremos uso de 3 maquinas diferentes, que seran las siguientes:
+
+ * Maquina 1: Esta maquina sera un cliente con una interfaz de red, que tendra la dirección IP "**10.0.0.2/24**".
+ * Maquina 2: Sera la maquina que hara de servidor, tendra 3 interfaces de red:
+    * La primera interfaz de red tendra la dirección IP con acceso a internet.
+    * La segunda interfaz de red tendra la dirección IP "**10.0.0.1/24**".
+    * La tercera interfaz de red tendra la dirección IP "**10.0.1.1/24**".
+ * Maquina 3: Esta maquina sera un cliente con una interfaz de red, que tendra la dirección IP "**10.0.1.2/24**".
+
+La idea de esta configuración sera que la primera maquina pueda acceder a la red de la maquina 3 y tambien salir a internet, pero siempre pasando por la vpn de la maquina 2.
+
+### Configuración de la maquina 2
+
+En esta maquina instalaremos el servidor de OpenVPN, para ello usaremos el siguiente comando:
+
+```jsx
+sudo apt install openvpn easy-rsa
+```
+Vamos a crear un directorio para almacenar los certificados y claves que se generen. Estos comandos crearan un directorio con un script para automatizar la creación de una autoridad certificadora, claves... Para ello ejecutaremos los siguientes comandos:
+```jsx
+make-cadir /root/easy-rsa
+cd /root/easy-rsa
+./easyrsa init-pki
+```
+:::tip Borrar configuración anterior
+Si ya hemos creado una autoridad certificadora y claves anteriormente, podemos borrarla con el siguiente comando:
+>./easyrsa clean-all
+:::
+
+Ahora vamos a crear una autoridad certificadora y generar el fichero Diffie-Hellman, para ello ejecutaremos el siguiente comando:
+```jsx
+./easyrsa build-ca
+./easyrsa gen-dh
+```
+
+Ahora vamos a crear un certificado para el servidor, para ello ejecutaremos el siguiente comando:
+```jsx
+./easyrsa build-server-full server nopass
+```
+:::info Ampliación sobre el comando anterior
+El comando anterior creara un certificado para el servidor, el nombre del certificado sera “server”, y no pedira contraseña para la creación del certificado. Esto se puede hacer por parte, pero al usar build-server-full se generara el certificado y clave al mismo tiempo, ahorrando el uso de varios comados para crear el certificado, firmarlo y generar la clave.
+:::
+
+Ahora vamos a crear un certificado para el cliente, esto generara dos ficheros que seran los que use el cliente, para ello ejecutaremos el siguiente comando:
+```jsx
+./easyrsa build-client-full clienteremote nopass
+```
+:::info ¿Podemos generar varios certificados para varios clientes?
+Si, podemos generar varios certificados para varios clientes. Es importante guardar bien el directorio easy-rsa, ya que si en el futuro queremos añadir mas cliente deben ser generado por la misma autoridad certificadora que el servidor o no funcionara.
+:::
+
+Generamos el fichero ta.key para proporcionar autenticación HMAC y encriptación para el control de paquetes del canal TLS. Para generar el fichero ejecutaremos el siguiente comando:
+```jsx
+openvpn --genkey secret ta.key
+```
+
+Ahora necesitaremos copiar los siguientes ficheros al directorio /etc/openvpn/server/:
+ * /root/easy-rsa/pki/ca.crt
+ * /root/easy-rsa/pki/dh.pem
+ * /root/easy-rsa/pki/issued/server.crt
+ * /root/easy-rsa/pki/private/server.key
+ * /root/easy-rsa/pki/ta.key
+
+Ahora configuraremos el servidor OpenVPN, para ello crearemos un fichero de configuración en el directorio /etc/openvpn, para ello ejecutaremos el siguiente comando:
+```jsx title="/etc/openvpn/server.conf"
+port 1194
+proto udp
+dev tun
+ca /etc/openvpn/server/ca.crt
+cert /etc/openvpn/server/server.crt
+key /etc/openvpn/server/server.key
+dh /etc/openvpn/server/dh.pem
+server 10.17.0.0 255.255.255.0
+ifconfig-pool-persist ipp.txt
+push "redirect-gateway def1"
+push "route 10.0.1.0 255.255.255.0"
+push "dhcp-option DNS 8.8.8.8"
+push "dhcp-option DNS 8.8.4.4"
+keepalive 10 120
+tls-crypt /etc/openvpn/server/ta.key
+cipher AES-256-CBC
+auth SHA256
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-remote.log
+verb 3
+explicit-exit-notify 1
+```
+
+Con esto ya tendriamos configurado el servidor openvpn, ahora necesitariamos configurar una regla nat para las conexiones puedan salir a internet.
+Tambien es necesario activar el "ip forwarding" para que las conexiones puedan salir a internet, esto lo hacemos descomentando o añadiendo la siguiente linea en el fichero /etc/sysctl.conf:
+```jsx
+net.ipv4.ip_forward=1
+```
+Dejare tambien mi configuración de red, aunque esto depende del escenario que se monte.
+```jsx title="/etc/network/interfaces"
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet dhcp
+	post-up	iptables -t nat -A POSTROUTING -s 10.17.0.0/24 -o eth0 -j MASQUERADE
+
+auto eth1
+iface eth1 inet static
+	address 10.0.0.1
+	netmask	255.255.255.0
+
+auto eth2
+iface eth2 inet static
+	address 10.0.1.1
+	netmask	255.255.255.0
+```
+
+Ahora reiniciamos el servicio de red y sysctl para que se apliquen los cambios:
+```jsx
+systemctl restart networking
+sysctl -p
+```
+Iniciamos el servicio vpn o habilitamos para el inicio segun queramos:
+```jsx
+systemctl start openvpn@server
+```
+### Explicación del fichero server.conf
+
+Ahora explicare cada parametro usado, en los futuros escenarios no explicare los parametros que ya esten explicados en este escenario.
+
+* **port 1194**: Este parámetro define el puerto en el que el servidor OpenVPN escuchará las conexiones entrantes de los clientes. El puerto predeterminado es 1194.
+* **proto udp**: Especifica el protocolo de transporte que se utilizará para las conexiones OpenVPN. En este caso, se utiliza UDP, que es más rápido pero menos confiable que TCP.
+* **dev tun**: Define el tipo de dispositivo de red virtual que se utilizará. `tun` crea una red de capa 3 (IP) y es la opción más común.
+* **ca /etc/openvpn/server/ca.crt**: Especifica la ubicación del certificado de autoridad (CA) utilizado para firmar los certificados de servidor y cliente.
+* **cert /etc/openvpn/server/server.crt**: Indica la ubicación del certificado del servidor firmado por la CA.
+* **key /etc/openvpn/server/server.key**: Especifica la ubicación de la clave privada del servidor.
+* **dh /etc/openvpn/server/dh.pem**: Define la ubicación del archivo que contiene los parámetros Diffie-Hellman, utilizados para el intercambio de claves en la fase de negociación de la conexión.
+* **server 10.17.0.0 255.255.255.0**: Establece la dirección IP y la máscara de subred para la red virtual privada. En este caso, se utiliza la subred 10.17.0.0/24.
+* **ifconfig-pool-persist ipp.txt**: Guarda las asignaciones de direcciones IP de los clientes en un archivo para que sean persistentes entre reinicios del servidor.
+* **push "redirect-gateway def1"**: Envía a los clientes una opción para redirigir todo su tráfico de Internet a través de la VPN.
+* **push "route 10.0.1.0 255.255.255.0"**: Agrega una ruta estática para la red 10.0.1.0/24 en el cliente, permitiendo que el cliente acceda a esa red a través de la VPN.
+* **push "dhcp-option DNS 8.8.8.8"** y **push "dhcp-option DNS 8.8.4.4"**: Establece los servidores DNS que se proporcionarán a los clientes.
+* **keepalive 10 120**: Define el intervalo de tiempo en segundos entre los mensajes de control de keepalive. En este caso, se envían mensajes cada 10 segundos y se considera que la conexión está caída si no hay respuesta después de 120 segundos.
+* **tls-crypt /etc/openvpn/server/ta.key**: Especifica la ubicación del archivo que contiene la clave precompartida utilizada para encriptar y autenticar los paquetes de control entre el servidor y los clientes.
+* **cipher AES-256-CBC**: Define el algoritmo de cifrado utilizado para encriptar los datos transmitidos a través de la VPN. En este caso, se utiliza el algoritmo AES-256-CBC.
+* **auth SHA256**: Especifica el algoritmo de autenticación utilizado para garantizar la integridad de los datos. En este caso, se utiliza SHA256.
+* **persist-key** y **persist-tun**: Estas opciones permiten que las claves y los dispositivos de túnel se mantengan en caso de que la conexión se interrumpa temporalmente. Esto puede ayudar a evitar problemas de conexión cuando se restablece la conexión.
+* **status /var/log/openvpn/openvpn-remote.log**: Especifica la ubicación del archivo de registro donde se almacenará información sobre las conexiones y el estado del servidor. En este caso, se utiliza el archivo `/var/log/openvpn/openvpn-remote.log`.
+* **verb 3**: Controla el nivel de registro de detalles en el archivo de registro. El valor 3 es un nivel intermedio que proporciona información suficiente para solucionar problemas sin ser demasiado verboso.
+* **explicit-exit-notify 1**: Esta opción le indica al servidor que espere una notificación explícita de salida por parte del cliente antes de considerar la conexión cerrada. El valor 1 significa que la notificación explícita de salida se espera solo cuando el cliente se desconecta de manera normal. Esto puede ser útil para manejar situaciones en las que un cliente se desconecta abruptamente, como una pérdida de energía o una desconexión de red.
+
+### Configuración de la maquina 1
+
+En esta maquina deberemos hacer algunos ajustes, aunque antes dejare la configuración de red usada en el fichero /etc/network/interfaces:
+```jsx title="/etc/network/interfaces"
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+    address 10.0.0.2
+    netmask 255.255.255.0
+    gateway 10.0.0.1
+```
+
+Ahora configuraremos la maquina 1, para ello necesitaremos instalar openvpn en la maquina 1, para ello ejecutamos:
+```jsx
+apt install openvpn
+```
+Copiaremos los siguientes ficheros de configuración generados con easy-rsa en la maquina 2 en el directorio /etc/openvpn/client de la maquina 1:
+ * /root/easy-rsa/pki/ca.crt
+ * /root/easy-rsa/pki/dh.pem
+ * /root/easy-rsa/pki/issued/clienteremote.crt
+ * /root/easy-rsa/pki/private/clienteremote.key
+ * /root/easy-rsa/pki/ta.key
+ 
+Ahora configuramos openvpn como cliente, para ello creamos el fichero /etc/openvpn/client/cliente.conf con el siguiente contenido:
+```jsx
+client
+dev tun
+proto udp
+remote 10.0.0.1 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca /etc/openvpn/client/ca.crt
+cert /etc/openvpn/client/clienteremote.crt
+key /etc/openvpn/client/clienteremote.key
+remote-cert-tls server
+tls-crypt /etc/openvpn/client/ta.key
+cipher AES-256-CBC
+auth SHA256
+verb 3
+```
+
+Ahora iniciamos el servicio de openvpn o lo habilitamos para el inicio:
+```jsx
+systemctl start openvpn@cliente
+```
+
+#### Explicación del fichero cliente.conf
+
+Aqui tenemos cada parametro usado explicado:
+
+* **client**: Indica que este archivo de configuración es para un cliente OpenVPN.
+* **dev tun**: Define el tipo de dispositivo de red virtual que se utilizará. `tun` crea una red de capa 3 (IP) y es la opción más común.
+* **proto udp**: Especifica el protocolo de transporte que se utilizará para las conexiones OpenVPN. En este caso, se utiliza UDP, que es más rápido pero menos confiable que TCP.
+* **remote 10.0.0.1 1194**: Define la dirección IP y el puerto del servidor OpenVPN al que se conectará el cliente. En este caso, se conectará al servidor en la IP 10.0.0.1 en el puerto 1194.
+* **resolv-retry infinite**: Especifica el número de veces que el cliente intentará resolver el nombre del servidor o la dirección IP en caso de una falla inicial. `infinite` indica que el cliente seguirá intentándolo indefinidamente.
+* **nobind**: Indica que el cliente no necesita enlazar a un puerto local específico.
+* **persist-key** y **persist-tun**: Estas opciones permiten que las claves y los dispositivos de túnel se mantengan en caso de que la conexión se interrumpa temporalmente. Esto puede ayudar a evitar problemas de conexión cuando se restablece la conexión.
+* **ca /etc/openvpn/client/ca.crt**: Especifica la ubicación del certificado de autoridad (CA) utilizado para firmar los certificados de servidor y cliente.
+* **cert /etc/openvpn/client/clienteremote.crt**: Indica la ubicación del certificado del cliente firmado por la CA.
+* **key /etc/openvpn/client/clienteremote.key**: Especifica la ubicación de la clave privada del cliente.
+* **remote-cert-tls server**: Verifica que el certificado presentado por el servidor es un certificado de servidor, lo que ayuda a proteger contra ciertos tipos de ataques man-in-the-middle.
+* **tls-crypt /etc/openvpn/client/ta.key**: Especifica la ubicación del archivo que contiene la clave precompartida utilizada para encriptar y autenticar los paquetes de control entre el servidor y los clientes.
+* **cipher AES-256-CBC**: Define el algoritmo de cifrado utilizado para encriptar los datos transmitidos a través de la VPN. En este caso, se utiliza el algoritmo AES-256-CBC.
+* **auth SHA256**: Especifica el algoritmo de autenticación utilizado para garantizar la integridad de los datos. En este caso, se utiliza SHA256.
+* **verb 3**: Controla el nivel de registro de detalles en el archivo de registro. El valor 3 es un nivel intermedio que proporciona información suficiente para solucionar problemas sin ser demasiado verboso.
+
+
+### Configuración de la maquina 2
+
+Esta maquina no requiere configuraciónes pero dejare el fichero de configuración de red /etc/network/interfaces:
+```jsx title="/etc/network/interfaces"
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+    address 10.0.1.2
+    netmask 255.255.255.0
+    gateway 10.0.1.1
+```
+
+### Comprobación de la conexión
+
+En las siguientes imagenes podemos ver como se ha establecido la conexión entre las dos maquinas, y como nos permite acceder a internet o a la maquina 3:
+
+![Servidor vpn en acceso remoto](/img/vpn/remote-server.png)
+
+![Cliente vpn en acceso remoto](/img/vpn/remote-client.png)
+
+
+## OpenVpn site to site
+
+Para realizar este escenario haremos uso de 4 maquinas diferentes, que seran las siguientes:
+
+ * Maquina 1: Esta estara en la red 1, tendra las siguientes dos interfaces de red:
+    * La primera interfaz de red tendra la dirección IP con acceso a internet.
+    * La segunda interfaz de red tendra la dirección IP "**10.0.0.2/24**".
+ * Maquina 2: Sera la maquina que hara de punta para unir las dos redes, tendra las siguientes 2 interfaces de red:
+    * La primera interfaz con la direccion IP "**10.1.1.1/24**".
+    * La segunda interfaz con la direccion IP "**10.0.0.1/24**".
+ * Maquina 3: Esta maquina sera otra de las puntas para unir las dos redes, tendra dos interfaces de red:
+    * La primera interfaz de red tendra la dirección IP "**10.1.1.2/24**".
+    * La segunda interfaz de red tendra la dirección IP "**10.0.1.1/24**".
+ * Maquina 4: Esta maquina sera un cliente con dos interfaz de red:
+    * La primera interfaz de red tendra la dirección IP con acceso a internet.
+    * La segunda interfaz de red tendra la dirección IP "**10.0.1.2/24**".
+
+### Configuración de la maquina 2(server) y 3(cliente)
+
+Antes de empezar, voy a dejar la configuración de red usado en las maquinas 2 y 3:
+```jsx title="/etc/network/interfaces de la maquina 2"
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+    address 10.1.1.1
+    netmask 255.255.255.0
+
+auto eth1
+iface eth1 inet static
+    address 10.0.0.1
+    netmask 255.255.255.0
+```
+   
+```jsx title="/etc/network/interfaces de la maquina 3"
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+auto eth0
+iface eth0 inet static
+    address 10.1.1.2
+    netmask 255.255.255.0
+
+auto eth1
+iface eth1 inet static
+    address 10.0.1.1
+    netmask 255.255.255.0
+```
+
+Para configurar este escenario vamos a requerir instalar el paquete openvpn y hacer lo mismo que hicimos en el escenario anterior. Tendremos que generar la autoridad certificadora, los certificados y las claves para el servidor y para el cliente. Para ello vamos a seguir los mismos pasos que en el escenario anterior.
+Cuando generemos los certificado es importante generar uno de tipo servidor en este caso llamado server, y otro de tipo cliente llamado cliente. Para eso usaremos estos dos comandos:
+```jsx
+./easyrsa build-server-full server nopass
+./easyrsa build-client-full cliente nopass
+```
+
+:::danger IMPORTANTE
+Doy por hecho que habeis creado la autoridad certificadora, el fichero diffie-hellman y el fichero ta.key. Si no es asi, por favor, revisar el escenario anterior.
+:::
+
+En este caso el servidor(Maquina 2) tendra un fichero server.conf y todos los ficheros generados de certificados y claves en la carpeta /etc/openvpn/server. El cliente(Maquina 3) tendra un fichero cliente.conf y todos los ficheros generados de certificados y claves en la carpeta /etc/openvpn/client.
+
+#### Configuración del servidor
+
+Para configurar el servidor vamos a crear un fichero llamado server.conf en la ruta /etc/openvpn. Este fichero tendra el siguiente contenido:
+```jsx title="/etc/openvpn/server.conf"
+port 1194
+proto udp
+dev tun
+ca /etc/openvpn/server/ca.crt
+cert /etc/openvpn/server/server.crt
+key /etc/openvpn/server/server.key
+dh /etc/openvpn/server/dh.pem
+tls-crypt /etc/openvpn/server/ta.key
+client-config-dir /etc/openvpn/ccd
+server 10.21.0.0 255.255.255.0
+route 10.0.1.0 255.255.255.0
+push "dhcp-option DNS 1.1.1.1"
+push "route 10.0.0.0 255.255.255.0"
+push "redirect-gateway def1 bypass-dhcp"
+ifconfig-pool-persist ipp.txt
+keepalive 10 120
+cipher AES-256-CBC
+persist-key
+persist-tun
+status /var/log/openvpn/openvpn-peer1.log
+verb 3
+explicit-exit-notify 1
+```
+
+En este caso no veo necesario volver a explicar todo, ya que el fichero es casi identico al escenario anterior. Antiguamente se hacia uso de una configuración diferente con parametros como "ifconfig origen destino", pero esto ha quedado obsoleto. La recomendación es hacerlo como un escenario de servidor-cliente.
+Aunque se han añadido algunos cambios al fichero para este escenario que explicare a continuación.
+
+* **push "route 10.0.0.0 255.255.255.0"**: En este caso estamos indicando al cliente que genere una ruta para que el trafico que reciba hacia la red 10.0.0.0/24 lo rediriga por la vpn. En un principio esto seria innecesario, porque hacemos uso del "redirect-gateway def1 bypass-dhcp", pero en este caso lo he añadido para que se vea que se puede hacer de las dos formas y porque puede dar algun tipo de error por inconsistencia de ruta de openvpn.
+* **route 10.0.1.0 255.255.255.0**: A diferencia del cliente el servidor no recibe el parametro "redirect-gateway def1 bypass-dhcp", por lo que tendremos que indicarle que genere una ruta para que el trafico que reciba hacia la red 10.0.1.0/24 lo rediriga por la vpn.
+* **client-config-dir /etc/openvpn/ccd**: Este parametro es nuevo, y lo que hace es indicarle al servidor que en la ruta /etc/openvpn/ccd va a tener ficheros de configuración para cada cliente. En este caso solo tendremos un cliente, pero si tuvieramos mas clientes, cada uno tendria su fichero de configuración en esa ruta. Cada archivo en este directorio debe tener el nombre de un cliente y puede contener opciones de configuración específicas para ese cliente. Este es un poderoso mecanismo de personalización que puede permitir, por ejemplo, asignar una dirección IP estática a un cliente específico o establecer rutas específicas del cliente.
+
+En el directorio anterior yo he creado un fichero llamado cliente con el siguiente contenido:
+```jsx title="/etc/openvpn/ccd/cliente"
+iroute 10.0.1.0 255.255.255.0
+```
+Esto esta indicando al servidor que si recibe trafico hacia la red indicada lo rediriga por la vpn hacia el cliente que tiene ese nombre. En este escenario no es util, pero en un escenario real si que lo seria, al tener diferentes clientes para acceder a otras redes. Tambien permite hacer diversas configuraciones mas complejas que la descrita por mi.
+
+#### Configuración del cliente
+
+Para configurar el cliente vamos a crear un fichero llamado cliente.conf en la ruta /etc/openvpn. Este fichero tendra el siguiente contenido:
+```jsx title="/etc/openvpn/cliente.conf"
+client
+dev tun
+proto udp
+remote 10.1.1.1 1194
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+ca /etc/openvpn/client/ca.crt
+cert /etc/openvpn/client/cliente.crt
+key /etc/openvpn/client/cliente.key
+tls-crypt /etc/openvpn/client/ta.key
+cipher AES-256-CBC
+remote-cert-tls server
+ignore-unknown-option block-outside-dns
+verb3
+```
+Para este caso no hay nada diferente al escenario anterior, por lo que no voy a explicar nada. Solo comentare una opcion que he añadido la cual no es necesaria si no hay clientes Windows. Esta opcion es:
+ * **ignore-unknown-option block-outside-dns**: Esta opción es específica para clientes Windows y bloquea todos los servidores DNS que estén fuera de la VPN. La directiva ignore-unknown-option se usa para evitar errores si la opción no es reconocida por la versión de OpenVPN.
+
+#### Activación de los servicios
+
+Al igual que en el escenario anterior debemos tener configurado los servicios con **systemctl**, tambien tenemos que tener activado el **ip_forwarding**. Segun como sea el escenario necesitaremos unas reglas u otras de iptable para que funcione. En mi caso he usado las siguientes reglas para ambas maquinas:
+
+```jsx title="Reglas iptables"
+iptables -A INPUT -i tun+ -j ACCEPT
+iptables -A FORWARD -i tun+ -j ACCEPT
+iptables -A INPUT -i tap+ -j ACCEPT
+iptables -A FORWARD -i tap+ -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+```
+### Comprobacion de funcionamiento y configuracion de las Maquinas 1 y 4
+
+Estas maquinas no requieren ninguna configuración especial o de openvpn. Solo debemos asegurarnos que tienen las rutas correctas para que deriven el trafico de las peticiones a la red 10.0.1.0/24 y 10.0.0.0/24 de forma respectiva hacia su destino.
+
+Para hacer la prueba podemos configurar una "**default via**" que nos permita hacer una comprobación rapida aunque perderemos el acceso a internet, esto solo es util para un momento. Lo haremos de la siguiente forma.
+
+* **Maquina 1**
+```jsx
+ip r del default
+ip r add default via 10.0.0.1
+```
+
+* **Maquina 4**
+```jsx
+ip r del default
+ip r add default via 10.0.1.1
+```
+En las siguientes capturas podemos ver la configuración de red y el comando "**traceroute**" para comprobar que el trafico se enruta correctamente.
+
+* Conexion desde la maquina 1 hacia la 4:
+![Prueba desde la maquina 1 hacia la 4](/img/vpn/openvpn-site-1.png)
+
+* Conexion desde la maquina 4 hacia la 1:
+![Prueba desde la maquina 4 hacia la 1](/img/vpn/openvpn-site-4.png)
+
+## Conclusiones sobre openvpn
+
+OpenVPN es una herramienta de VPN muy popular debido a su versatilidad y seguridad. A continuación, resumiré algunas de sus ventajas y desventajas sin entrar en demasiados detalles pues para eso ya esta el articulo en el blog.
+
+Ventajas de OpenVPN:
+* Seguridad: OpenVPN utiliza protocolos de seguridad robustos y modernos, incluyendo SSL/TLS para el intercambio de claves, y es capaz de cifrar datos utilizando el algoritmo AES-256, considerado de grado militar.
+* Versatilidad: OpenVPN puede atravesar firewalls y proxies, y funciona bien en todas las redes, incluyendo redes de NAT y dinámicas.
+* Personalización: OpenVPN ofrece una gran cantidad de opciones y configuraciones, lo que lo hace altamente personalizable para adaptarse a diferentes necesidades y escenarios.
+* Compatibilidad: OpenVPN es compatible con todas las plataformas principales, incluyendo Windows, Mac, Linux, iOS y Android.
+
+Desventajas de OpenVPN:
+* Configuración: La configuración de OpenVPN puede ser bastante compleja, especialmente para usuarios menos técnicos. No es tan sencillo de configurar como otros protocolos de VPN más plug-and-play.
+* Rendimiento: Aunque OpenVPN es altamente seguro, puede ser un poco más lento que otros protocolos de VPN debido a su alto nivel de cifrado y autenticación.
+* Bloqueo: Aunque OpenVPN puede atravesar firewalls, algunos proveedores de servicios de Internet (ISP) o redes pueden bloquear el protocolo OpenVPN por completo.
+* Cliente necesario: Para usar OpenVPN, se necesita instalar un cliente de software en el dispositivo que se va a conectar, lo que puede no ser ideal en algunos escenarios.
+
+En general, OpenVPN es una excelente opción si buscas una solución de VPN segura, confiable y altamente personalizable, y estás dispuesto a lidiar con una configuración más compleja. Tambien debo señalar que la version 3 y la documentación mas actual recomienda instalar la herramienta con su entorno de ventanas para escritorio, siendo el uso que le hemos dado en esta documentación algo mas antiguo. Incluso aunque usaramos ficheros de configuración por terminal, lo ideal hubiese sido usar ficheros en formato "**.ovpn**" y no los ficheros "**.conf**" que hemos usado, asi como el comando "**openvpn**" para iniciar el servicio, configurarlo... etc. En la documentación de la version 3 de openvpn se puede ver como se hace esto.
+
+## WireGuard Access Remote
+
+Despues de venir de un duro trayecto usando openvpn vamos a configurar los mismos escenarios o similares con otra herramienta muy popular en el mercado, esta es "**WireGuard**". WireGuard es una tecnología de red privada virtual (VPN) de código abierto que tiene como objetivo proporcionar una solución más rápida, más simple y más segura que las ofertas de VPN existentes, como IPsec y OpenVPN.
+Es una herramienta no tan potente como "openvpn" pero si mas sencilla de configurar y de usar, ademas de ser mas rapida. Con el tiempo poco a poco esta consiguiendo ofrecer lo mismo que "openvpn" pero con un rendimiento superior.
+
+En este escenario vamos a hacer uso de 2 maquinas con "Debian 11", una sera el servidor y la otra una maquina dentro de su red a la cual accederemos desde otras maquinas para hacer las pruebas. Tambien vamos a aprovechar la facilidad ofrecida por wireguard para hacer uso de su herramienta en android y Windows, ya que al ser una de sus ventajas la facilidad de uso pienso que estara bien ver como funciona.
+
+La configuracion de las maquinas sera la siguiente:
+
+* **Maquina 1**: Servidor WireGuard, tendra dos interfaces de red:
+   * Primera interfaz: eth0 con ip "**10.0.0.1/24**"
+   * Segunda interfaz: eth1 con ip "**10.1.1.1/24**".
+* **Maquina 2**: Maquina con Debian 11, tendra dos interfaces de red:
+   * Primera interfaz: eth0 con ip publica para internet.
+   * Segunda interfaz: eth1 con ip "**10.1.1.2/24**".
+* El resto de maquinas, Windows, Android u otro Linux, tendran dos interfaces de red:
+   * Primera interfaz: eth0 con ip publica para internet.
+   * Segunda interfaz: eth1 con una ip capaz de acceder a la red del servidor WireGuard.
+
+### Instalacion y configuración de WireGuard
+
+En el caso de esta herramienta al no funcionar por autoridad certificadora, y solo hacer uso de claves publicas y privadas para su seguridad, da lo mismo si generamos estas claves en una maquina u otra. Lo primero es instalar los paquetes necesarios en la maquina servidor y clientes.
+
+```jsx title="Instalacion de WireGuard"
+apt install wireguard wireguard-tools qrencode
+```
+
+Una vez instalado el paquete en el servidor debemos generar las claves publicas y privadas para el servidor y para los clientes. Para ello usaremos el comando "**wg**" que nos ofrece wireguard.
+
+```jsx title="Generacion de claves"
+wg genkey | tee privatekey | wg pubkey > publickey
+```
+
+Una vez generadas las claves debemos configurar el fichero "**/etc/wireguard/wg0.conf**". Este fichero contendra la configuración para la VPN. A continuación pondre una configuración basica pero mas que suficiente para funcionar, en este escenario.
+
+```jsx title="Configuracion del servidor WireGuard"
+[Interface]
+Address = 10.0.99.1/24
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth1 -j MASQUERADE
+ListenPort = 51820
+PrivateKey = eOpB5i2CXH03GgLo8mrkKQ+15MKP+RIo4UdpD0fQ2nY=
+
+[Peer]
+PublicKey = p25WTqzup/Wk5iQHnBj9rSDqipnRYQQRqWNmkpRhz24=
+AllowedIPs = 10.0.99.4/32
+Endpoint = 10.0.0.47:60588
+
+[Peer]
+PublicKey = QfrnSgqOmYUw5jH8YWotij2Wqaub+8k5p7jJ7d7OVmw=
+AllowedIPs = 10.0.99.3/32
+Endpoint = 10.0.0.40:58200
+```
+En estos ficheros podemos ver que hay dos secciones, la primera es "**[Interface]**" y la segunda "**[Peer]**". En la primera sección se configura la interfaz de red que usara wireguard, en este caso la interfaz "**wg0**". En la segunda sección se configuran los clientes que se conectaran a la VPN, en este caso hay dos clientes.
+
+Este fichero es bastante sencillo de entender, en los parametros **PostUP** hemos configurado unas reglas de iptables que nos permita redirigir el trafico que entra por la interfaz **wg0** de la vpn hacia la interfaz con acceso a internet que es "**eth1**". En este caso esa interfaz redirige a otra red donde hay una manquina que usaremos para comprobar que la conexion se hace.
+El parametro "**PostDown**", es para que cuando la interfaz se baje deshaga las reglas de iptables que hemos creado. Luego tenemos que la propia maquina debe tener su clave privada configurada con la interfaz, esto se aplica tambien a los clientes. Mientras que la información de los clientes almacenadas en cada maquina se configura en la sección "**[Peer]**". Aqui se indica la clave publica del cliente, la direccion ip desde donde enviara trafico hacia esta maquina y el puerto al que se conectara.
+
+:::info Parametros autogenerados
+Algunos parametros, o datos como puede ser el "**Endpoint**" se autogeneran cuando se conecta un cliente a la VPN. Por lo que no es necesario configurarlos en el fichero de configuración. Incluso el puerto donde se escucha, en caso de no escribirlo se genera la primera vez que se enciende el servicio. Estas son algunas de las ventajas de WireGuard.
+:::
+
+#### Explicación del fichero de configuración de WireGuard
+
+* **Sección [Interface]:**
+   * `Address`: Este es el valor de la dirección IP que se asignará a la interfaz WireGuard. Puedes especificar una red CIDR, por ejemplo, 192.168.2.1/24. Si configuras varios clientes, asegúrate de que cada uno tenga una dirección IP única en esta red.
+   * `PrivateKey`: Esta es la clave privada que se generó en el paso de generación de claves. Debe mantenerse segura y no debe compartirse. Se utiliza para autenticar la máquina en la VPN.
+   * `ListenPort`: Este es el puerto en el que el servidor WireGuard escuchará las conexiones. Por defecto es 51820, pero puedes cambiarlo si lo deseas.
+   * `SaveConfig`: Este parámetro, si se establece en `true`, indica a WireGuard que guarde la configuración actual cuando se detiene la interfaz. Esto es útil si se añaden clientes mientras se está en funcionamiento.
+   * `PostUp` y `PostDown`: Estos comandos se ejecutan después de que la interfaz se inicia y antes de que se detenga, respectivamente. En este caso, se utilizan para modificar las reglas de iptables para permitir el reenvío de paquetes y la traducción de direcciones de red (NAT).
+   * `DNS`: Este parámetro, que se utiliza en la configuración del cliente, especifica el servidor DNS que el cliente debe utilizar mientras está conectado a la VPN.
+   * `MTU`: Este es el tamaño máximo de la unidad de transmisión (MTU) para las conexiones de WireGuard. Si tienes problemas con la fragmentación de paquetes, podrías ajustar este valor, pero normalmente no necesitarás cambiarlo.
+   * `Table`: Este parámetro se usa para especificar una tabla de enrutamiento personalizada en la que se insertarán las rutas de WireGuard. Por defecto, WireGuard usa la tabla principal.
+   * `PreUp`, `PostUp`, `PreDown`, `PostDown`: Estos parámetros permiten especificar comandos que se ejecutan antes y después de que se suba y baje la interfaz de WireGuard. Por ejemplo, podrías usar estos para ajustar las reglas del firewall, como se hace en el escenario con `iptables`.
+
+* **Sección [Peer]:**
+   * `PublicKey`: Esta es la clave pública del par que se está configurando. En el caso del servidor, será la clave pública del cliente, y en el caso del cliente, será la clave pública del servidor. Se utiliza para autenticar el otro extremo de la conexión.
+   * `Endpoint`: La dirección y puerto del extremo opuesto. Este parámetro es obligatorio en los clientes, y opcional en el servidor. En un servidor, se puede utilizar para especificar un cliente que está detrás de un NAT.
+   * `AllowedIPs`: Esta es una lista de las direcciones IP que se permitirá que el par envíe. En el caso del servidor, se configurará para cada cliente individual, y en el caso del cliente, se puede configurar para enviar todo el tráfico a través de la VPN (0.0.0.0/0, ::/0) o solo el tráfico destinado a la red de la VPN.
+   * `PersistentKeepalive`: Este parámetro, si se establece, hace que el cliente envíe un paquete de "keepalive" a intervalos regulares. Esto puede ser útil si el cliente está detrás de un NAT y necesita mantener la conexión abierta. El valor se da en segundos.
+   * `PresharedKey`: Este es un valor de clave simétrica que se puede utilizar junto con la autenticación de clave pública/privada para proporcionar un nivel adicional de seguridad. Este valor se puede generar utilizando el comando `wg genpsk`.
+
+### Configuración de los clientes
+
+En el caso de que el cliente sea un ordenador, ya tenga Linux, Windows o Mac, el proceso es el mismo. Primero debemos instalar WireGuard en el cliente, luego debemos generar las claves publicas y privadas y por ultimo debemos configurar el fichero de configuración de WireGuard. En el caso de que el cliente sea un dispositivo movil, el proceso es el mismo, pero la instalación de WireGuard se hace desde la tienda de aplicaciones del dispositivo y podemos tambien añadir la configuración con un codigo QR.
+
+Ahora veremos un fichero estandar o base que nos servira para todos los clientes con WireGuard.
+
+```jsx title="Fichero de configuración de WireGuard cliente"
+[Interface]
+Address = 10.0.99.4/32
+PrivateKey = aILaZ/lt5YtPnL8O8/IgLQoIIiWTtO7s021NvHpCDWk=
+
+[Peer]
+PublicKey = hUrSTs6zEBOBlWz0IMgMq9CU5o65m+0dQ5bkvXzDEhM=
+AllowedIPs = 0.0.0.0/0
+Endpoint = 10.0.99.1:51820
+PersistentKeepalive = 25
+```
+
+Al igual que en el caso anteior vemos una configuración similar, en este caso sin normas de iptables, ya que no es necesario. En la sección "**[Interface]**" tenemos la dirección ip que se le asignara a la interfaz de WireGuard, la clave privada de la maquina y en la sección "**[Peer]**" tenemos la clave publica del servidor, la dirección ip del servidor y el puerto al que se conectara.
+
+Podemos ver que para wireguard no existe el concepto de servidor/cliente de forma explicita. Son interfaces que se conectan entre si con una clave publica y privada. Por lo que en cada fichero de configuración de WireGuard de un cliente, podemos tener varias secciones "**[Peer]**" para conectarnos a varios servidores.
+
+#### Cliente Android
+Para este cliente haremos algo diferente, aunque configuraremos un fichero de configuración de WireGuard con cualquiera de las maquinas, en este caso no lo activaremos, si no que convertiremos ese fichero en un codigo QR.
+
+Para convertir el fichero en codigo QR, podemos hacer uso de la herramienta **qrencode**.
+
+```bash
+qrencode -t utf8 < /root/cliente.conf
+```
+Esto nos generara un codigo QR como el que podemos ver en la siguiente imagen, que podemos escanear con la aplicacion de WireGuard en Android y nos configurara el cliente.
+
+* Codigo QR generado con el comando "**qrencode -t utf8 < /root/cliente.conf**":
+![Codigo QR](/img/vpn/wireguard-qr.png)
+
+
+Ahora configuramos el cliente de WireGuard en Android y lo activamos.
+1. Instalamos la aplicacion de WireGuard en Android.
+2. Abrimos la aplicacion y pulsamos en el boton "**+**" para añadir una nueva configuración.
+3. Pulsamos en "**Crear desde archivo o archivo QR**".
+4. Seleccionamos el fichero de configuración de WireGuard o escaneamos el codigo QR.
+5. Pulsamos en "**Añadir túnel**".
+6. Pulsamos en el nuevo tunel creado.
+7. Pulsamos en "**Activar**".
+
+* Configuración de WireGuard en Android con el codigo QR:
+![Configuración de WireGuard en Android con el codigo QR](/img/vpn/wireguard-android.jpg)
+
+### Activar y probar el servicio de WireGuard
+
+Para activar el servicio de WireGuard podemos hacer uso de sus propios comandos incluidos como "wg-quick" o podemos hacer uso de **systemd**. En este caso vamos a hacer uso de **systemd**.
+
+```bash title="Activar el servicio de WireGuard"
+systemctl enable --now wg-quick@wg0
+```
+Cuando este activado los servicios de cada cliente, podremos ver que se habra añadido lso Endpoint de cada cliente en el fichero de configuración de WireGuard del servidor. Tambien podemos ejecutar el comando "**wg**" para ver el estado de la VPN, como podemos ver en la siguiente imagen.
+
+![Comando wg](/img/vpn/wg-command.png)
+
+A continuación dejare unas imagenes de prueba de la conexion VPN, veremos como desde la maquina con Windows y la maquina con Linux podemos acceder a la maquina que esta en la red del servidor VPN. Es importante que las rutas de los clientes sepa redirigir el trafico hacia la VPN, aunque al haber usado el parametro "**AllowedIPs = 0.0.0.0/0**" todo el trafico sera enviado por la interfaz de la VPN.
+
+:::danger Cuidado con Windows
+En el caso de Windows, es posible que no podamos acceder a la maquina de la red del servidor VPN, esto es debido a que Windows no redirige todo el trafico por la interfaz de la VPN al no ser capaz de configurarla. Debemos cambiar el enrutamiento para que al conectarse a la VPN sepa que esa peticion debe ir por la interfaz de la VPN. Una vez conectado el tunel cogera automaticamente las opciones como "AllowedIPs" y "Endpoint" del fichero de configuración de WireGuard, haciendo que todo el trafico vaya por dicha interfaz-
+:::
+
+* Prueba de conexion VPN desde Windows:
+![Prueba de conexion VPN desde Windows](/img/vpn/tracert-windows.png)
+
+* Prueba de conexion VPN desde Linux:
+![Prueba de conexion VPN desde Linux](/img/vpn/tracert-clientlinux.png)
+
+## WireGuard site to site
+
+En el caso de esta herramienta no existe el concepto servidor/cliente, hace uso de una conexion estilo peer-to-peer. Basta con coger dos maquinas conectadas por WireGuard como las del caso anterior, y configurarle unas iptables que permitan redirigir el trafico recibido hacia su segunda red, de esta forma los clientes podran conectarse a la red del otro cliente. Debido a su sencillez, no es necesario explicar nada mas, ya que es lo mismo que el caso anterior, pero con dos maquinas.
+
+Dejare a continuación de forma resumida las reglas iptables para las dos maquinas con WireGuard.
+
+```jsx title="Reglas iptables para ambas maquinas"
+iptables -A FORWARD -i wg0 -j ACCEPT
+iptables -A FORWARD -o wg0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+```
+
+Tambien podemos configurarlo dentro del fichero de configuración de WireGuard, en la sección "**[Interface]**" añadiendo la siguiente linea:
+
+```jsx title="Reglas iptables dentro del fichero de configuración de WireGuard"
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+```
+
+Por ultimo los clientes deben tener rutas para enrutar las peticiones hacia la otra red directamente por la interfaz de red que tiene acceso a las maquinas que haran el puente VPN, o en caso de estar configuradas por VPN tambien como en el escenario anterior se indicaria la ip de la interfaz VPN.
+
+## Conclusiones sobre WireGuard
+
+A modo de resumen final dejare algunas menciones breves a sus ventajas y desventajas.
+
+Por supuesto, aquí tienes un resumen de las ventajas y desventajas de WireGuard:
+
+**Ventajas de WireGuard:**
+
+1. **Simplicidad**: WireGuard tiene una base de código pequeña y una configuración sencilla, lo que facilita su uso y su revisión en busca de posibles problemas de seguridad.
+2. **Rendimiento**: Su diseño ligero y su integración en el kernel de Linux permiten a WireGuard ofrecer un rendimiento superior al de muchas otras soluciones de VPN.
+3. **Seguridad moderna**: WireGuard utiliza protocolos criptográficos modernos y seguros, y evita la utilización de algoritmos de cifrado anticuados o inseguros.
+4. **Conexiones sin estado y roaming**: WireGuard maneja muy bien las conexiones sin estado y las transiciones entre diferentes conexiones a Internet, lo que es ideal para dispositivos móviles.
+5. **Multiplataforma**: WireGuard es compatible con una amplia gama de sistemas operativos, incluyendo Linux, Windows, macOS, Android, iOS y otros.
+
+**Desventajas de WireGuard:**
+
+1. **Falta de características avanzadas**: Aunque su simplicidad es una ventaja, WireGuard carece de algunas de las características avanzadas que se encuentran en soluciones de VPN más antiguas y complejas, como OpenVPN.
+2. **Menos anonimato**: WireGuard no oculta las direcciones IP de los clientes al servidor, lo que podría ser una desventaja para aquellos que buscan un alto nivel de anonimato.
+3. **Necesidad de mantener claves estáticas**: WireGuard requiere la generación y el mantenimiento de pares de claves estáticas, lo que puede aumentar la complejidad de la gestión en comparación con las soluciones que utilizan certificados dinámicos.
+4. **Es relativamente nuevo**: Aunque WireGuard ha sido auditado y ha encontrado una adopción generalizada, es más nuevo que otras soluciones de VPN y podría no haber sido probado en tantos escenarios o configuraciones diferentes.
+
+En general, WireGuard es una excelente opción para muchos usuarios y casos de uso debido a su simplicidad, rendimiento y seguridad. Sin embargo, no es la mejor opción para todos y cada uno de los escenarios, por lo que siempre es importante evaluar cuidadosamente tus necesidades específicas al elegir una solución VPN.
