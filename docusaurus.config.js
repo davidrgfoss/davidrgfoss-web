@@ -18,6 +18,19 @@ const config = {
   organizationName: 'gitub/davidrgfoss', // Usually your GitHub org/user name.
   projectName: 'Davidrg FOSS', // Usually your repo name.
 
+  plugins: [
+    [
+      '@docusaurus/plugin-ideal-image',
+      {
+        quality: 100,
+        max: 1920,
+        min: 400,
+        steps: 17,
+        disableInDev: false,
+      },
+    ],
+  ],
+
   presets: [
     [
       '@docusaurus/preset-classic',
