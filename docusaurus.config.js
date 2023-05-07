@@ -31,6 +31,21 @@ const config = {
     ],
   ],
 
+  scripts: [
+    {
+      src: 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',
+      async: false,
+      'data-name': 'BMC-Widget',
+      'data-id': 'davidrgfoss',
+      'data-description': 'Apoyame comprandome un cafe!!',
+      'data-message': 'Apoyame comprandome un cafe!!',
+      'data-color': '#40DCA5',
+      'data-position': 'Right',
+      'data-x_margin': '18',
+      'data-y_margin': '18',
+    },
+  ],
+
   presets: [
     [
       '@docusaurus/preset-classic',
