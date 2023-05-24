@@ -155,11 +155,11 @@ const config = {
               },
               {
                 label: 'GitLab',
-                href: 'https://gitlab.com/davidrg',
+                href: 'https://gitlab.com/davidrgfoss',
               },
               {
               	label: 'GitHub',
-              	href: 'https://github.com/davidrg28',
+              	href: 'https://github.com/davidrgfoss',
               },
             ],
           },
