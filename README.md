@@ -4,9 +4,7 @@
 
 ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=davidrgfoss&layout=compact&theme=buefy)
 
-[![GitHub Streak](https://github-readme-streak-stats.herokuapp.com?user=davidrgfoss&theme=buefy&border_radius=2.8&date_format=j%20M%5B%20Y%5D)](https://git.io/streak-stats)
-
-[![GitHub Streak](https://streak-stats.demolab.com/?user=davidrgfoss)](https://git.io/streak-stats)
+[![GitHub Streak](https://streak-stats.demolab.com?user=davidrgfoss&theme=dracula&locale=es&date_format=j%2Fn%5B%2FY%5D)](https://git.io/streak-stats)
 
 <!--
 **davidrgfoss/davidrgfoss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
