@@ -6,6 +6,8 @@
 
 [![GitHub Streak](https://streak-stats.demolab.com?user=davidrgfoss&theme=dracula&mode=weekly&locale=es&date_format=j%2Fn%5B%2FY%5D)](https://git.io/streak-stats)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=davidrgfoss_davidrgfoss&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=davidrgfoss_davidrgfoss)
+
 <!--
 **davidrgfoss/davidrgfoss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
