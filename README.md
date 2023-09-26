@@ -1,8 +1,8 @@
 ### Hola a todos!!! 👋 Este es mi proyecto personal enfocado al software libre.
 
-![github stats](https://github-readme-stats.vercel.app/api?username=davidrgfoss&show_icons=true&theme=dracula)
+![github stats](https://github-readme-stats.vercel.app/api?username=davidrgfoss&locale=es&show_icons=true&theme=dracula)
 
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=davidrgfoss&layout=compact&theme=dracula)
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=davidrgfoss&locale=es&layout=compact&theme=dracula)
 
 [![GitHub Streak](https://streak-stats.demolab.com?user=davidrgfoss&theme=dracula&locale=es&date_format=j%2Fn%5B%2FY%5D)](https://git.io/streak-stats)
 
