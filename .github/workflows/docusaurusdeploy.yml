@@ -15,7 +15,7 @@ jobs:
       -
         name: Set environment for branch
         run: |
-          if [[ $GITHUB_REF == 'refs/heads/master' ]]; then
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
               echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_PRODUCTION }}" >> "$GITHUB_ENV"
               echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_PRODUCTION }}" >> "$GITHUB_ENV"
               echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_PRODUCTION }}" >> "$GITHUB_ENV"
