@@ -1,6 +1,6 @@
 ### Hola a todos!!! 👋 Este es mi proyecto personal enfocado al software libre.
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=2k5XD9ndVUUD&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=2k5XD9ndVUUD)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=2k5XD9ndVUUD&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=2k5XD9ndVUUD) [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/uyq1.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
 
 ![github stats](https://github-readme-stats.vercel.app/api?username=davidrgfoss&locale=es&show_icons=true&theme=dracula)
 
