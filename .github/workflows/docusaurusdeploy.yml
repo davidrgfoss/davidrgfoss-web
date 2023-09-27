@@ -62,7 +62,7 @@ jobs:
           customer: "${{ env.QUANT_CUSTOMER }}"
           project: "${{ env.QUANT_PROJECT }}"
           token: "${{ env.QUANT_TOKEN }}"
-          dir: /build
+          dir: build
           chunk-size: 20
           skip-purge: true
           enable-index-html: true
