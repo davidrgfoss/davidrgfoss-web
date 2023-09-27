@@ -3,8 +3,7 @@ name: "Deploy built docs to QuantCDN"
 on:
   push:
     branches:
-      - develop
-      - master
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
