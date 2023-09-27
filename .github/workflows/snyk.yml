@@ -4,13 +4,24 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Setup nodejs
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('yarn.lock') }}
+
       - name: Install Dependencies
-        run: npm install
-      - uses: actions/checkout@master
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: yarn install
+        
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         env:
