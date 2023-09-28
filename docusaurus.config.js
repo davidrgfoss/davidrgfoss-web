@@ -142,6 +142,11 @@ const config = {
             label: 'GitHub',
             position: 'right',
           },
+          {
+            href: 'https://status.davidrgfoss.com/',
+            label: 'Status',
+            position: 'right',
+          },
         ],
       },
       footer: {
