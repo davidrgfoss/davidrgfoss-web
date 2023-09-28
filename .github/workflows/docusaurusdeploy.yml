@@ -11,31 +11,31 @@ jobs:
     
       - uses: actions/checkout@v3
 
-      - name: Cache Node Modules
+      - name: Comprobar dependencias en cache
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('yarn.lock') }}
 
-      - name: Install Dependencies
+      - name: Instalar dependencias necesarias/faltantes
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install
 
-      - name: Build docs
+      - name: Compilar la web
         run: yarn run build
 
-      - name: Show generated outputs
+      - name: Ficheros estaticos generados
         run: find build
 
-      - name: Cache local revision file
+      - name: Fichero de revision para cache local
         id: cache-quant-revisions
         uses: actions/cache@v3
         with:
           path: .quant-revision
           key: quant-revision
 
-      - name: Deploy updates to QuantCDN
+      - name: Desplegar la web en quantcdn
         uses: quantcdn/deploy-action@v2.0.0
         with:
           customer: "${{ secrets.QUANT_CUSTOMER }}"
@@ -44,7 +44,7 @@ jobs:
           dir: build
           skip-unpublish: true
 
-      - name: Purge the QuantCDN cache
+      - name: Purgar la cache de quantcdn
         uses: quantcdn/purge-action@v1.2.0
         with:
           customer: "${{ secrets.QUANT_CUSTOMER }}"
