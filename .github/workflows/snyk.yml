@@ -6,23 +6,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup nodejs
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Cache Node Modules
+      - name: Comprobar cache dependencias nodejs
         id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('yarn.lock') }}
 
-      - name: Install Dependencies
+      - name: Instalar las dependencias
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install
         
-      - name: Run Snyk to check for vulnerabilities
+      - name: Escanear en busca de vulnerabilidades con Snyk
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
