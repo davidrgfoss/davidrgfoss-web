@@ -40,6 +40,18 @@ jobs:
           path: .quant-revision
           key: quant-revision
 
+      - name: Deploy updates to QuantCDN
+        uses: quantcdn/deploy-action@v2.0.0
+        with:
+          customer: "${{ secrets.QUANT_CUSTOMER }}"
+          project: "${{ secrets.QUANT_PROJECT }}"
+          token: "${{ secrets.QUANT_TOKEN }}"
+          dir: /build
+          chunk-size: 20
+          skip-purge: true
+          enable-index-html: true
+          revision-log: .quant-revision
+
       - name: Purge the QuantCDN cache
         uses: quantcdn/purge-action@v1.2.0
         with:
@@ -47,15 +59,4 @@ jobs:
           project: "${{ secrets.QUANT_PROJECT }}"
           token: "${{ secrets.QUANT_TOKEN }}"
           url_pattern: "/*"
-
-      - name: Deploy updates to QuantCDN
-        uses: quantcdn/deploy-action@v2.0.0
-        with:
-          customer: "${{ secrets.QUANT_CUSTOMER }}"
-          project: "${{ secrets.QUANT_PROJECT }}"
-          token: "${{ secrets.QUANT_TOKEN }}"
-          dir: build
-          chunk-size: 20
-          skip-purge: true
-          enable-index-html: true
-          revision-log: .quant-revision
+          
