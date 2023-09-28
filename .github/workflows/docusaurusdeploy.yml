@@ -2,28 +2,14 @@ name: "Despliegue de docusaurus en quantcdn"
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   init:
     runs-on: ubuntu-latest
     steps:
-     -
-        name: Set environment for branch
-        run: |
-          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-              echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_PRODUCTION }}" >> "$GITHUB_ENV"
-              echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_PRODUCTION }}" >> "$GITHUB_ENV"
-              echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_PRODUCTION }}" >> "$GITHUB_ENV"
-          else
-              echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_EDGE }}" >> "$GITHUB_ENV"
-              echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_EDGE }}" >> "$GITHUB_ENV"
-              echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_EDGE }}" >> "$GITHUB_ENV"
-          fi
     
       - uses: actions/checkout@v3
 
@@ -51,7 +37,7 @@ jobs:
 
       - name: Cache local revision file
         id: cache-quant-revisions
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .quant-revision
           key: quant-revision
@@ -59,9 +45,9 @@ jobs:
       - name: Deploy updates to QuantCDN
         uses: quantcdn/deploy-action@v2.0.0
         with:
-          customer: "${{ env.QUANT_CUSTOMER }}"
-          project: "${{ env.QUANT_PROJECT }}"
-          token: "${{ env.QUANT_TOKEN }}"
+          customer: "${{ secrets.QUANT_CUSTOMER }}"
+          project: "${{ secrets.QUANT_PROJECT }}"
+          token: "${{ secrets.QUANT_TOKEN }}"
           dir: "build"
           chunk-size: 20
           skip-purge: true
@@ -71,7 +57,7 @@ jobs:
       - name: Purge the QuantCDN cache
         uses: quantcdn/purge-action@v1.2.0
         with:
-          customer: "${{ env.QUANT_CUSTOMER }}"
-          project: "${{ env.QUANT_PROJECT }}"
-          token: "${{ env.QUANT_TOKEN }}"
+          customer: "${{ secrets.QUANT_CUSTOMER }}"
+          project: "${{ secrets.QUANT_PROJECT }}"
+          token: "${{ secrets.QUANT_TOKEN }}"
           url_pattern: "/*"
