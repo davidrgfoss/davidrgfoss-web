@@ -3,8 +3,6 @@ name: "Despliegue de docusaurus en quantcdn"
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   init:
@@ -48,7 +46,7 @@ jobs:
           customer: "${{ secrets.QUANT_CUSTOMER }}"
           project: "${{ secrets.QUANT_PROJECT }}"
           token: "${{ secrets.QUANT_TOKEN }}"
-          dir: "build"
+          dir: build
           chunk-size: 20
           skip-purge: true
           enable-index-html: true
