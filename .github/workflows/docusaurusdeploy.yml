@@ -1,19 +1,42 @@
-name: Deploy to QuantCDN
+name: "Despliegue de docusaurus en quantcdn"
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+
 jobs:
-  build:
+  init:
     runs-on: ubuntu-latest
     steps:
+    
       - uses: actions/checkout@v3
-      # Build the artefact or restore a cached copy.
-      - name: Install dependencias
+
+      - name: Cache Node Modules
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('yarn.lock') }}
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn install
-      - name: Build the deploy artefact
+
+      - name: Build docs
         run: yarn run build
-      - uses: quantcdn/deploy-action@v2.0.0
+
+      - name: Show generated outputs
+        run: find build
+
+      - name: Cache local revision file
+        id: cache-quant-revisions
+        uses: actions/cache@v3
+        with:
+          path: .quant-revision
+          key: quant-revision
+
+      - name: Deploy updates to QuantCDN
+        uses: quantcdn/deploy-action@v2.0.0
         with:
           customer: "${{ secrets.QUANT_CUSTOMER }}"
           project: "${{ secrets.QUANT_PROJECT }}"
@@ -21,3 +44,11 @@ jobs:
           dir: build
           skip-unpublish: true
 
+      - name: Purge the QuantCDN cache
+        uses: quantcdn/purge-action@v1.2.0
+        with:
+          customer: "${{ secrets.QUANT_CUSTOMER }}"
+          project: "${{ secrets.QUANT_PROJECT }}"
+          token: "${{ secrets.QUANT_TOKEN }}"
+          url_pattern: "/*"
+          
