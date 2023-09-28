@@ -33,7 +33,7 @@ const config = {
   scripts: [
     {
       src: 'https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js',
-      async: false,
+      async: true,
       'data-name': 'BMC-Widget',
       'data-id': 'davidrgfoss',
       'data-description': 'Apoyame comprandome un cafe!!',
@@ -43,6 +43,13 @@ const config = {
       'data-x_margin': '18',
       'data-y_margin': '18',
     },
+    {
+      src: 'https://uptime.betterstack.com/widgets/announcement.js',
+      async: true,
+      'data-id': '171061',
+      type: 'text/javascript',
+    },
+  ],
   ],
 
   presets: [
