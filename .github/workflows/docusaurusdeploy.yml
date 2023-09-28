@@ -12,18 +12,6 @@ jobs:
   init:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Set environment for branch
-        run: |
-          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
-              echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_PRODUCTION }}" >> "$GITHUB_ENV"
-              echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_PRODUCTION }}" >> "$GITHUB_ENV"
-              echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_PRODUCTION }}" >> "$GITHUB_ENV"
-          else
-              echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_EDGE }}" >> "$GITHUB_ENV"
-              echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_EDGE }}" >> "$GITHUB_ENV"
-              echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_EDGE }}" >> "$GITHUB_ENV"
-          fi
 
       - uses: actions/checkout@v3
 
@@ -62,6 +50,7 @@ jobs:
           customer: "${{ env.QUANT_CUSTOMER }}"
           project: "${{ env.QUANT_PROJECT }}"
           token: "${{ env.QUANT_TOKEN }}"
+          dir: "build"
           chunk-size: 20
           skip-purge: true
           enable-index-html: true
