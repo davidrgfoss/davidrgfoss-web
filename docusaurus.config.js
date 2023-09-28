@@ -50,7 +50,6 @@ const config = {
       type: 'text/javascript',
     },
   ],
-  ],
 
   presets: [
     [
