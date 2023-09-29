@@ -5,6 +5,7 @@ En este proyecto intento plasmar los conocimientos que tengo en el campo de la i
 ## Estado de la página
 
 En los siguientes iconos puedes ver el estado del codigo y el estado del servidor web.
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=2k5XD9ndVUUD&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=2k5XD9ndVUUD) [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/uyq1.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
 
 # [Ultimos cambios](CHANGELOG.md)
