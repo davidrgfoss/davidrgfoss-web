@@ -3,6 +3,9 @@
 En este proyecto intento plasmar los conocimientos que tengo en el campo de la informática/programación/administración. La idea es hacer tutoriales o guías, para poder configurar diferentes herramientas o tecnologías, de esta forma poder ayudar a personas que estén en una situación de querer resolver algo y no poder por falta de documentación en español o fiable.
 
 ## Estado de la página
+
+En los siguientes iconos puedes ver el estado del codigo y el estado del servidor web.
+
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=2k5XD9ndVUUD&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=2k5XD9ndVUUD) [![Better Stack Badge](https://uptime.betterstack.com/status-badges/v1/monitor/uyq1.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
 
 # [Ultimos cambios](CHANGELOG.md)
