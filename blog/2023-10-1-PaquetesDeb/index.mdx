@@ -19,7 +19,6 @@ La estructura interna de un paquete "deb" consiste en tres partes principales: u
 
 1. Sección de Control:
 Esta sección contiene metadatos del paquete que incluyen información como el nombre del paquete, versión, descripción, arquitectura, dependencias, y otros datos necesarios para la correcta gestión del paquete. Los archivos en esta sección están almacenados en un directorio llamado DEBIAN (en mayúsculas) dentro del paquete "deb". Podriamos resumirlo con que aqui se define que hara el fichero "deb" al ser instalado por el gestor de paquetes, marcando el orden, rutas y configuraciones necesarias.
-
 :::info Ficheros importantes
 Un archivo importante en esta sección es el archivo control, que contiene muchos de los metadatos mencionados. Otros archivos importantes pueden incluir preinst, postinst, prerm, y postrm, que son scripts que se ejecutan en varias etapas del proceso de instalación y eliminación.
 :::
@@ -113,13 +112,16 @@ Para esta tarea se desarrollo inicialmente la herramienta **"dpkg"** y luego otr
 
 ### DPKG (Debian Package Management System)
 
-Esta herramienta es la encargada de coger un paquete "deb" y realizar su instalación. Para hacer esto sigue un orden de tareas a realizar que comentaremos a continuación.
+Esta herramienta es la encargada de coger un paquete `deb` y realizar su instalación. Para hacer esto sigue un orden de tareas a realizar que comentaremos a continuación.
 
 1. **Comprobación de las dependencias**:
-   * `"dpkg"` revisa las dependencias del paquete para asegurar que todas las librerías y paquetes necesarios estén presentes. Si faltan dependencias, `"dpkg"` informará al usuario pero no las resolverá automáticamente.
+   * `dpkg` revisa las dependencias del paquete para asegurar que todas las librerías y paquetes necesarios estén presentes. Si faltan dependencias, `dpkg` informará al usuario pero no las resolverá automáticamente.
 
 3. **Extracción del Paquete**:
-   * `"dpkg"` extrae el contenido del archivo `"deb"` en una área temporal. Un paquete `"deb"` generalmente consta de las tres secciones que hemos explicado anteriormente.
+   * `dpkg` extrae el contenido del archivo `deb` en una área temporal. Un paquete `deb` generalmente consta de las tres secciones que hemos explicado anteriormente.
+:::tip Opciones del comando
+El proceso de instalación puede variar ligeramente dependiendo de las opciones específicas con las que se ejecuta `dpkg`, y de los scripts específicos incluidos en el paquete que se está instalando.
+:::
 
 4. **Ejecución de Scripts Pre-Instalación**:
    * Si existen, se ejecutan los scripts de pre-instalación incluidos en el paquete. Estos scripts pueden detener servicios, eliminar archivos antiguos, o realizar cualquier otra preparación necesaria para la instalación.
@@ -127,44 +129,39 @@ Esta herramienta es la encargada de coger un paquete "deb" y realizar su instala
 5. **Instalación de Archivos**:
    * Los archivos del programa se copian en las ubicaciones necesarias del sistema de archivos. Esto incluye binarios, librerías, documentación, etc.
 
+
 6. **Configuración**:
    * Se ejecutan los scripts de post-instalación incluidos en el paquete. Esto puede incluir la configuración inicial del software, el arranque de servicios...etc
-   * En este paso también se configuran los archivos de configuración. Si un archivo de configuración ya existe y el paquete contiene una versión nueva, `"dpkg"` puede preguntar al usuario cómo proceder haciendo uso del programa `"debconf"`.
-   :::info debconf
-   Debconf es un sistema de configuración de software para los sistemas operativos Debian y derivados. Es usado durante la instalación de nuevos paquetes o la reconfiguración de paquetes existentes. Debconf permite a los paquetes preguntar al usuario ciertas preguntas en el momento de la instalación, para personalizar la configuración según las necesidades del usuario o del sistema.
-   :::
+   * En este paso también se configuran los archivos de configuración. Si un archivo de configuración ya existe y el paquete contiene una versión nueva, `dpkg` puede preguntar al usuario cómo proceder haciendo uso del programa `debconf`.
+:::info debconf
+Debconf es un sistema de configuración de software para los sistemas operativos Debian y derivados. Es usado durante la instalación de nuevos paquetes o la reconfiguración de paquetes existentes. Debconf permite a los paquetes preguntar al usuario ciertas preguntas en el momento de la instalación, para personalizar la configuración según las necesidades del usuario o del sistema.
+:::
 
 7. **Registro**:
    * `dpkg` registra la información del paquete en el sistema, incluyendo la versión instalada y los archivos que ha colocado o modificado. Esto es esencial para la gestión futura del paquete y para asegurar la integridad del sistema.
-
 :::danger Base de datos de paquetes
-Perder la base de datos que registra `"dpkg"` de los paquetes o que sea modificada sin control puede causar un gran problema. Esto se debe a que si no sabe que paquetes tiene isntalado en el sistema o sus versiones no sabra cuales actualizar o intentara instalar paquetes ya existente provocando errores.
+Perder la base de datos que registra `dpkg` de los paquetes o que sea modificada sin control puede causar un gran problema. Esto se debe a que si no sabe que paquetes tiene isntalado en el sistema o sus versiones no sabra cuales actualizar o intentara instalar paquetes ya existente provocando errores.
 :::
 
 8. **Limpieza**:
-   * Finalmente, `"dpkg"` limpia los archivos temporales.
+   * Finalmente, `dpkg` limpia los archivos temporales.
 
-:::tip
-El proceso de instalación puede variar ligeramente dependiendo de las opciones específicas con las que se ejecuta `"dpkg"`, y de los scripts específicos incluidos en el paquete que se está instalando.
-:::
-
-Este proceso asegura que el software se instale correctamente, con todas las configuraciones necesarias, y que el sistema esté al tanto de los nuevos archivos y software instalados. También destaca la diferencia entre `"dpkg"` y herramientas de nivel superior como `apt`, que proporciona una gestión de dependencias más amigable y una interfaz de usuario más rica.
+Este proceso asegura que el software se instale correctamente, con todas las configuraciones necesarias, y que el sistema esté al tanto de los nuevos archivos y software instalados. También destaca la diferencia entre `dpkg` y herramientas de nivel superior como `apt`, que proporciona una gestión de dependencias más amigable y una interfaz de usuario más rica.
 
 ### APT (Advanced Package Tool)
 
-Los años posteriores a la creación de `"dpkg"` se creo una herramienta mas completa, de lo que se conoce como alto nivel. Esta herramienta no solo seria capaz de hacer uso de `"dpkg"`, `"debconf"` si no que tambien haria uso de otras herramientas para obtener los paquetes desde un servidor externo, al que se le conoceria como repositorio. Tambien seria capaz de instalar todas las dependencias y dependencias de estas para que funcione el programa que vamos a instalar.
+Los años posteriores a la creación de `dpkg` se creo una herramienta mas completa, de lo que se conoce como alto nivel. Esta herramienta no solo seria capaz de hacer uso de `dpkg`, `debconf` si no que tambien haria uso de otras herramientas para obtener los paquetes desde un servidor externo, al que se le conoceria como repositorio. Tambien seria capaz de instalar todas las dependencias y dependencias de estas para que funcione el programa que vamos a instalar.
 
 #### Repositorio 
 
-Una de las parte mas importante respecto a `"dpkg"` es que ahora existen unos repositorios como hemos mencionado. Estos son usados por `"apt"` para obtener los paquetes, podriamos decir que se conecta a un servidor y se descarga el paquete que vas a instalar. Como añadido tambien mira las dependencias de ese paquete que estan escrita en su fichero de control para buscarlo y descargarlos tambien.
+Una de las parte mas importante respecto a `dpkg` es que ahora existen unos repositorios como hemos mencionado. Estos son usados por `apt` para obtener los paquetes, podriamos decir que se conecta a un servidor y se descarga el paquete que vas a instalar. Como añadido tambien mira las dependencias de ese paquete que estan escrita en su fichero de control para buscarlo y descargarlos tambien.
 
 Para asegurarnos de que lo que estamos descargando es algo fiable y no un virus como puede pasarno por internet, se siguen unas medidas de seguridad. A continuación vamos a verlas brevemente:
 
 1. **Firmas Digitales**:
     * Los repositorios utilizan firmas digitales para garantizar que los paquetes no han sido alterados desde su creación. Los paquetes del repositorio son firmados por los creadores o mantenedores del repositorio utilizando una clave privada. Los usuarios pueden verificar estas firmas utilizando la clave pública correspondiente.
-
 :::info Detalles
-La clave pública del repositorio se debe importar al sistema del usuario para que pueda verificarse la firma del paquete. Esta clave se suele proporcionar por el propio repositorio y se importa al sistema una sola vez, por ejemplo, al añadir un nuevo repositorio. Normalmente se si se usa herramientas de alto nivel como `"apt"` se importan solas.
+La clave pública del repositorio se debe importar al sistema del usuario para que pueda verificarse la firma del paquete. Esta clave se suele proporcionar por el propio repositorio y se importa al sistema una sola vez, por ejemplo, al añadir un nuevo repositorio. Normalmente se si se usa herramientas de alto nivel como `apt` se importan solas.
 :::
 
 2. **Sumas de Comprobación (Checksums)**:
@@ -179,39 +176,41 @@ La clave pública del repositorio se debe importar al sistema del usuario para q
 5. **Políticas de Mantenimiento**:
     * Los repositorios bien mantenidos tienen políticas estrictas sobre cómo se deben construir y mantener los paquetes, incluyendo la revisión del código y las actualizaciones de seguridad ante las vulnerabilidades que se descubran.
     * La comunidad de usuarios y desarrolladores también desempeña un papel en la revisión y reporte de problemas de seguridad o bugs en los paquetes.
-
 :::danger Advertencia
 A pesar de todos estos mecanismos, siempre existe el riesgo de que un paquete malintencionado o comprometido pueda infiltrarse en un repositorio, especialmente en repositorios menos mantenidos o no oficiales. Por lo tanto, se recomienda a los usuarios que utilicen repositorios confiables y mantengan sus sistemas actualizados.
 :::
 
 #### Proceso de instalación de un paquete con apt
 
-A continuación vamos a ver los pasos que sigue esta herramienta para instalar un paquete, aunque podremos comprobar que son muy similares a `"dpkg"`, pues realmente esta herramienta hace uso de la anterior y de otras para hacer una gestion mas completa.
+A continuación vamos a ver los pasos que sigue esta herramienta para instalar un paquete, aunque podremos comprobar que son muy similares a `dpkg`, pues realmente esta herramienta hace uso de la anterior y de otras para hacer una gestion mas completa.
 
 
 1. **Resolución de Dependencias**:
-   * `"apt"` comienza revisando las dependencias del paquete que se desea instalar. Identifica todas las dependencias y subdependencias necesarias, asegurando que todas se instalen antes de proceder.
+   * `apt` comienza revisando las dependencias del paquete que se desea instalar. Identifica todas las dependencias y subdependencias necesarias, asegurando que todas se instalen antes de proceder.
 
 2. **Descarga de Paquetes**:
-   * Una vez resueltas las dependencias, `"apt"` descarga el paquete principal junto con todos los paquetes que sean parte de este de los repositorios configurados en el sistema. 
+   * Una vez resueltas las dependencias, `apt` descarga el paquete principal junto con todos los paquetes que sean parte de este de los repositorios configurados en el sistema. 
 
 3. **Verificación de la Integridad**:
-   * Antes de la instalación, `"apt"` verifica la integridad de los paquetes descargados comparando las sumas de comprobación con las listadas en los repositorios.
+   * Antes de la instalación, `apt` verifica la integridad de los paquetes descargados comparando las sumas de comprobación con las listadas en los repositorios.
 
 4. **Desempaquetado e Instalación**:
-   * `"apt"` pasa el control a `"dpkg"` para desempaquetar e instalar cada paquete. Esto incluye la ejecución de scripts pre-instalación, la copia de archivos en las ubicaciones correctas, y la ejecución de scripts post-instalación.
+   * `apt` pasa el control a `dpkg` para desempaquetar e instalar cada paquete. Esto incluye la ejecución de scripts pre-instalación, la copia de archivos en las ubicaciones correctas, y la ejecución de scripts post-instalación.
 
 5. **Configuración**:
-   * Durante la instalación, se realizan las configuraciones necesarias. Si un archivo de configuración ya existe y el paquete contiene una versión nueva, `"apt"` (a través de `"dpkg"`) puede preguntar al usuario cómo proceder.
+   * Durante la instalación, se realizan las configuraciones necesarias. Si un archivo de configuración ya existe y el paquete contiene una versión nueva, `apt` (a través de `dpkg`) puede preguntar al usuario cómo proceder.
 
 6. **Actualizacion de la base de datos**:
-   * `"apt"` registra la información del paquete en el sistema, incluyendo la versión instalada y los archivos que ha colocado o modificado. Esto es esencial para la gestión futura del paquete y para asegurar la integridad del sistema.
+   * `apt` registra la información del paquete en el sistema, incluyendo la versión instalada y los archivos que ha colocado o modificado. Esto es esencial para la gestión futura del paquete y para asegurar la integridad del sistema.
 
 7. **Limpieza**:
-   * Tras una instalación exitosa, `"apt"` puede limpiar los archivos temporales y paquetes descargados, especialmente si se utiliza la opción `"autoclean"` o `"autoremove"`.
-
-
+   * Tras una instalación exitosa, `apt` puede limpiar los archivos temporales y paquetes descargados, especialmente si se utiliza la opción `autoclean` o `autoremove`.
 :::tip Curiosidad
-El uso de `"apt"` simplifica mucho la gestión de paquetes en comparación con `"dpkg"` solo, gracias a su capacidad para resolver y gestionar dependencias automáticamente, así como su interfaz de usuario más amigable.
+El uso de `apt` simplifica mucho la gestión de paquetes en comparación con `dpkg` solo, gracias a su capacidad para resolver y gestionar dependencias automáticamente, así como su interfaz de usuario más amigable.
 :::
 
+## Conclusion
+
+Como hemos podido comprobar en este artículo, una de las grandes ventajas que tiene **Linux** es la capacidad de las personas de añadir soluciones a problemas que existen. Esto puede jugar también en contra debido a la demasiada dispersión de ideas, pero puede llegar a ser una ventaja cuando realmente se crea algo que suple una necesidad. Los paquetes en formato "`deb`" junto a las herramientas que lo gestionan han hecho que **Debian** sea una de las distribuciones más usadas y de las que más derivadas se han creado.
+
+Todo esto se debe a la facilidad de su paquetería, aunque no está exenta de problemas, sobre todo en la gestión de tantas dependencias; es algo que con los años se ha ido solucionando, o mejorado en la distro que se ha basado en ella. En este artículo vamos a hacer un ejercicio práctico con el uso de la terminal para gestionar paquetes.
