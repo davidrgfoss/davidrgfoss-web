@@ -59,7 +59,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
+          editUrl: 'https://github.com/davidrgfoss/davidrgfoss-web/blob/main/',
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
           remarkPlugins: [math],
@@ -69,7 +69,7 @@ const config = {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://github.com/davidrgfoss/davidrgfoss/blob/main/',
+            'https://github.com/davidrgfoss/davidrgfoss-web/blob/main/',
           remarkPlugins: [math],
           rehypePlugins: [katex],
           postsPerPage: 10,
