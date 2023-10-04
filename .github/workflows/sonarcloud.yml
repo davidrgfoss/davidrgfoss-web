@@ -2,7 +2,7 @@ name: SonarCloud
 
 on:
   workflow_run:
-    workflows: ["prcheck"]
+    workflows: ["Comprobación de PR para la rama main"]
     types:
       - completed
 
