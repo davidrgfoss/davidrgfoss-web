@@ -1,0 +1,18 @@
+name: Comprobación de pr para la rama main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check_branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Si no es la rama desarrollo parar pull request
+        run: |
+          if [[ "${{ github.head_ref }}" != "desarrollo" ]]; then
+            echo "Solo se permite hacer PR a la rama main desde la rama desarrollo"
+            exit 1
+          fi
+
