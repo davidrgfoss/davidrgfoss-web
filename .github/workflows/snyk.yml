@@ -1,8 +1,10 @@
 name: Scan Snyk
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows: ["Comprobación de PR para la rama main"]
+    types:
+      - completed
     
 jobs:
   security:
