@@ -11,7 +11,7 @@ jobs:
       - name: Comprobar si el PR es de la rama desarrollo hacia la main y es abierto por el propietario
         id: check
         run: |
-          if [[ "${{ github.head_ref }}" != "desarrollo" || "${{ github.event.pull_request.user.login }}" != 'davidrgfoss' ]]; then
+          if [[ "${{ github.event.pull_request.head.ref }}" == "desarrollo" && "${{ github.event.pull_request.base.ref }}" == "main" && "${{ github.event.pull_request.user.login }}" != 'davidrgfoss' ]]; then
             echo "message=🌠🌠La rama main, solo acepta pull request desde la rama desarrollo y del propietario o asociados🌌🌌" >> $GITHUB_ENV
           fi
 
