@@ -1,4 +1,4 @@
-name: Comprobación de PR para la rama main
+name: Check-PR-main
 
 on:
   pull_request:
