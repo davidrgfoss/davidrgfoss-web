@@ -1,4 +1,4 @@
-name: Check-PR-main
+name: Check PR main
 
 on:
   pull_request:
