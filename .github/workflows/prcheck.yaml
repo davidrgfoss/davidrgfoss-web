@@ -2,8 +2,7 @@ name: Comprobación de PR para la rama main
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   check_branch:
