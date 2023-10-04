@@ -2,18 +2,17 @@ name: Comprobación de PR para la rama main
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [opened, synchronize, reopened]
 
 jobs:
   check_branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Comprobar si el pr es de la rama desarrollo hacia la main
+      - name: Comprobar si el PR es de la rama desarrollo hacia la main y es abierto por el propietario
         id: check
         run: |
-          if [[ "${{ github.head_ref }}" != "desarrollo" ]]; then
-            echo "message=No se permite hacer pr a la rama main" >> $GITHUB_ENV
+          if [[ "${{ github.event.pull_request.base.ref }}" == "main" && ( "${{ github.event.pull_request.head.ref }}" != "desarrollo" || "${{ github.event.pull_request.user.login }}" != 'davidrgfoss' ) ]]; then
+            echo "message=🌠🌠La rama main solo acepta pull request desde la rama desarrollo y del propietario o asociados🌌🌌" >> $GITHUB_ENV
           fi
 
       - name: Cerrar pull request y comentar motivo.
