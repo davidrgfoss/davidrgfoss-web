@@ -1,4 +1,4 @@
-name: Comprobación de pr para la rama main
+name: Comprobación de PR para la rama main
 
 on:
   pull_request:
@@ -9,10 +9,33 @@ jobs:
   check_branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Si no es la rama desarrollo parar pull request
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Si no es la rama desarrollo, parar pull request
+        id: check
         run: |
           if [[ "${{ github.head_ref }}" != "desarrollo" ]]; then
-            echo "Solo se permite hacer PR a la rama main desde la rama desarrollo"
+            echo "::set-output name=message::Solo se permite hacer PR a la rama main desde la rama desarrollo"
             exit 1
           fi
 
+      - name: Cerrar PR y escribir el motivo del cierre
+        if: steps.check.outputs.message != ''
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { issue } = context;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              body: '${{ steps.check.outputs.message }}'
+            });
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: issue.number,
+              state: 'closed'
+            });
