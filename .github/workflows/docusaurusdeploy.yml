@@ -2,14 +2,30 @@ name: "Despliegue de docusaurus en quantcdn"
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - desarrollo
 
 jobs:
-  init:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-    
       - uses: actions/checkout@v3
+      
+      # Establecer valores basados en la rama
+      - name: Establecer variables para MAIN
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_MAIN }}" >> $GITHUB_ENV
+          echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_MAIN }}" >> $GITHUB_ENV
+          echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_MAIN }}" >> $GITHUB_ENV
+
+      - name: Establecer variables para DESARROLLO
+        if: github.ref == 'refs/heads/desarrollo'
+        run: |
+          echo "QUANT_CUSTOMER=${{ secrets.QUANT_CUSTOMER_DEV }}" >> $GITHUB_ENV
+          echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_DEV }}" >> $GITHUB_ENV
+          echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_DEV }}" >> $GITHUB_ENV
 
       - name: Comprobar dependencias en cache
         id: cache-node-modules
@@ -25,6 +41,15 @@ jobs:
       - name: Compilar la web
         run: yarn run build
 
+      # Para ramas que no sean 'main'
+      - name: Eliminar archivos mayores a 2MB
+        if: github.ref != 'refs/heads/main'
+        run: find build -type f -size +2M -delete
+
+      - name: Modificar robots.txt para prevenir indexación
+        if: github.ref != 'refs/heads/main'
+        run: echo "User-agent: *" > build/robots.txt && echo "Disallow: /" >> build/robots.txt
+
       - name: Ficheros estaticos generados
         run: find build
 
@@ -38,17 +63,16 @@ jobs:
       - name: Desplegar la web en quantcdn
         uses: quantcdn/deploy-action@v2.0.0
         with:
-          customer: "${{ secrets.QUANT_CUSTOMER }}"
-          project: "${{ secrets.QUANT_PROJECT }}"
-          token: "${{ secrets.QUANT_TOKEN }}"
+          customer: ${{ env.QUANT_CUSTOMER }}
+          project: ${{ env.QUANT_PROJECT }}
+          token: ${{ env.QUANT_TOKEN }}
           dir: build
           skip-unpublish: true
 
       - name: Purgar la cache de quantcdn
         uses: quantcdn/purge-action@v1.2.0
         with:
-          customer: "${{ secrets.QUANT_CUSTOMER }}"
-          project: "${{ secrets.QUANT_PROJECT }}"
-          token: "${{ secrets.QUANT_TOKEN }}"
+          customer: ${{ env.QUANT_CUSTOMER }}
+          project: ${{ env.QUANT_PROJECT }}
+          token: ${{ env.QUANT_TOKEN }}
           url_pattern: "/*"
-          
