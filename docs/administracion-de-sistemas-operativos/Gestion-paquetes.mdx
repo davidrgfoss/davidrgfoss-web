@@ -1,0 +1,303 @@
+---
+sidebar_position: 3
+---
+# Trabajando con gestores de paquetes deb
+
+En esta guía, exploraremos el manejo de paquetes en un sistema Debian Bullseye. Empezaremos configurando una máquina virtual con Debian Bullseye y luego profundizaremos en cómo interactuar con los paquetes utilizando `apt`, `aptitude` y `dpkg`.
+
+Esto viene a ser un ejemplo practico con ejemplos de uso para la teoria explicada en el articulo de mi blog; [Paquetes en formato deb](https://www.davidrgfoss.com/blog/Paquetes%20en%20formato%20deb)
+
+## Configurando la máquina virtual
+
+Antes de comenzar, asegúrate de tener una máquina virtual con Debian Bullseye instalado. Si no la tienes, puedes descargar la imagen ISO de [la página oficial de Debian](https://www.debian.org/distrib/) y seguir las instrucciones de instalación.
+
+## Gestores apt, aptitude y dpkg
+
+### apt update y apt upgrade
+
+La primera acción que vamos a realizar es actualizar la lista de paquetes disponibles y luego actualizar los paquetes instalados en nuestro sistema. Un proceso que realizamos de forma casi mecanica, pero no por ello menos importante. Para ello, utilizaremos los siguientes comandos:
+
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+:::info Detalles de los comandos
+* `apt update` actualiza la lista de paquetes disponibles descargando la información más reciente de los repositorios configurados en el sistema. No actualiza los paquetes en sí, solo las nuevas versiones disponibles, generando una lista con los paquetes para descargar. Por ejemplo `openssh-2.1.3`.
+
+* `apt upgrade` actualiza los paquetes instalados a las versiones más recientes según la información recopilada por el último `apt update`. Es importante hacer siempre un `apt update` antes de un `apt upgrade` para asegurarse de obtener las últimas versiones de los paquetes.
+:::
+
+### Listando Paquetes Actualizables
+
+Para listar los paquetes que tienen una actualización disponible, puedes usar el siguiente comando:
+
+```bash
+apt list --upgradable
+```
+
+En el listado, podrás observar el nombre del paquete, la versión actual, y la versión a la cual será actualizado. También puedes ver el repositorio desde el que se obtendrá la actualización.
+
+### Información del paquete openssh-client
+
+Para obtener información sobre un paquete específico como `openssh-client`, puedes usar `apt` y `dpkg` como se muestra a continuación:
+
+- **Ver todos los ficheros asociados al paquete instalado**:
+  ```bash
+  dpkg -L openssh-client # Muestra todos los ficheros que pertenece a este paquete y sus ubicaciones en el sistema.
+  dpkg -l openssh-client # Muestra información del paquete instalado
+  ```
+
+- **Ver información del paquete openssh-client disponible en el repositorio**:
+  ```bash
+  apt show openssh-client
+  apt policy openssh-client
+  ```
+:::tip
+Como podemos observar el comando `apt` esta pensado para trabajar mayormente sobre el repositorio a diferencia de `dpkg` que gestiona los paquetes locales. Aunque tengamos el paquete instalado la información que nos muestra con `apt show` es la del paquete en el repositorio, aunque generalmente es la misma que la instalada pues el sistema suele estar actualizado y no hay demasiados cambios en las descripciones.
+
+`apt policy` nos muestra las diferentes versiones disponible del paquete segun nuestros repositorios y que repositorio tiene prioridad a la hora de obtener una version actualizada.
+:::
+
+### Explorando el contenido de un paquete
+
+Para listar el contenido de un paquete sin necesidad de descargarlo o instalarlo, puedes usar el comando `apt-file`. Primero, asegúrate de tener `apt-file` instalado y la información actualizada:
+
+```bash
+sudo apt install apt-file
+sudo apt-file update
+```
+
+Luego, para listar el contenido del paquete `openssh-client`, ejecuta:
+
+```bash
+apt-file list openssh-client
+```
+
+### Simulando la instalación de un paquete
+
+Si deseas ver lo que sucederá cuando intentes instalar un paquete sin realmente instalarlo, puedes usar la opción `--simulate` o `-s` con `apt`:
+
+```bash
+sudo apt install --simulate openssh-client
+```
+
+### Reporte de Bugs
+
+Para obtener información sobre los bugs de un paquete, puedes visitar el [Sistema de Seguimiento de Bugs de Debian (BTS)](https://bugs.debian.org/). Por ejemplo, para `openssh-client`, la URL sería https://bugs.debian.org/cgi-bin/pkgreport.cgi?pkg=openssh-client.
+
+Aunque tambien podemos hacer este proceso con comandos, siendo el metodo menos eficiente o util porque la información puede ser menos legible o menos comoda de leer. A continuación veremos los dos metodos principales que existen para debian, para ello necesitaremos tener instalado los paquetes `apt-listbugs` y `reportbug`.
+
+- **Mostrar bugs de un paquete**:
+```bash
+apt-listbugs list openssh-client
+querybts openssh-client
+```
+:::tip Diferencia entre los comandos
+Ambos comandos estan pensado para trabajar con la lista de bugs de debian, por lo que no seria util en distros como ubuntu que tienen su propia herramienta. La mayor diferencia, es que `apt-listbugs` muestra una lista resumida de los bugs del paquete escogido, y `querybts` muestra una lista completa e interactiva de todos los fallos y reportes de ese paquete que estan en la web (BTS)](https://bugs.debian.org/). Digamos que esta ultima es casi como acceder a la pagina desde la terminal.
+:::
+
+### Actualizando Paquetes Específicos
+
+Si deseas actualizar solo los paquetes que contienen una cadena específica como "openssh", puedes usar un bucle en Bash junto con `xargs` como se muestra a continuación:
+
+```bash
+apt list --upgradable | grep openssh | cut -d/ -f1 | xargs sudo apt install -y
+```
+
+### Encontrando Dependencias y Ficheros
+
+Para encontrar qué paquetes dependen de un paquete específico o para encontrar a qué paquete pertenece un fichero determinado, puedes usar los comandos `apt-rdepends` y `dpkg-query`, respectivamente:
+
+- **Dependencias**:
+  ```bash
+  sudo apt install apt-rdepends
+  apt-rdepends openssh-client
+  ```
+
+- **Fichero**:
+  ```bash
+  dpkg-query -S /ruta/del/fichero
+  ```
+
+### Limpieza de la Caché
+
+Para liberar la caché de descargas de paquetería, puedes usar el siguiente comando:
+
+```bash
+sudo apt clean
+```
+
+### Instalación y Reconfiguración de Paquetes
+
+Usar variables de entorno para configurar un paquete que vamos a instalar no esta aconsejado para usarse con herramientas como `apt`, aunque puede existir paquetes que sean compatible. Lo ideal seria configurar las opciones con la herramienta `debconf-set-selections`. Si que podemos usar variables de entorno para cambiar el comportamiento de la propia herramienta `apt` como seria especificarle que sea una instalacion desatendida sin que nos preguntes, pero no para configurar opciones del paquete a instalar.
+
+Con `dpkg-reconfigure` podemos reconfigurar las opciones de un paquete. Esto hara uso de la herramienta `debconf`.
+
+- **Instalación con Variables de Entorno**:
+  ```bash
+  # Preconfigurar las opciones del teclado
+  echo 'keyboard-configuration keyboard-configuration/layout select es' | sudo debconf-set-selections
+  echo 'keyboard-configuration keyboard-configuration/variant select Spanish (Spain)' | sudo debconf-set-selections
+  # Instalar el paquete keyboard-configuration
+  sudo apt-get install -y keyboard-configuration
+  #Tambien podemos variables de entorno para especificar cosas como que no sea interactivo.
+  DEBIAN_FRONTEND=noninteractive sudo apt install keyboard-configuration
+  ```
+
+- **Reconfigurar un paquete**:
+  ```bash
+  sudo dpkg-reconfigure locales
+  ```
+:::tip Variables del paquete locales
+Para reconfigurar el paquete `locales` y añadir una nueva localización, sigue las instrucciones en pantalla. Luego, modifica el fichero `~/.bashrc` o `~/.bash_profile`  creando o cambiando las variables de entorno `LANG=` y `LC_ALL`, poniendo el idioma que deseamos, en mi caso `es_ES.UTF-8`.
+:::
+
+### Interrupción y Continuación de la Instalación
+
+Si la configuración de un paquete se interrumpe, puedes continuarla con los siguiente comando:
+
+```bash
+sudo dpkg --configure -a
+sudo apt install -f
+```
+:::info Recomendación
+En general es mejor trabajar con la herramienta `apt`, esta es mas completa y hara uso de la herramienta `dpkg` asi como otras necesarias. Seria capaz de resolver tambien problemas de dependencias si lo necesita.
+:::
+
+### Actualización Completa y Bloqueo de Paquetes
+
+- **Actualización Completa**:
+  ```bash
+  sudo apt full-upgrade -y
+  ```
+
+- **Bloqueo de Paquetes**:
+  ```bash
+  sudo apt-mark hold nombre-del-paquete
+  ```
+
+## Trabajando con ficheros .deb
+
+### Descargando un Paquete
+
+Para descargar un paquete sin instalarlo, puedes usar el comando `apt download`:
+
+```bash
+apt download openssh-client
+```
+
+### Visualizando el Contenido del Paquete
+
+Para visualizar el contenido de un paquete `.deb` sin extraerlo, puedes usar el comando `dpkg`:
+
+```bash
+dpkg --contents nombre-del-paquete.deb
+```
+
+### Extracción y Descompresión
+
+El comando `ar` se utiliza para extraer el contenido de un paquete `.deb`. Una vez extraído, encontrarás tres ficheros: `debian-binary`, `control.tar.gz` y `data.tar.xz`. El fichero `control.tar.gz` contiene información del paquete y scripts de control, mientras que `data.tar.xz` contiene los ficheros que se instalarán en el sistema.
+
+```bash
+ar x nombre-del-paquete.deb
+tar xf control.tar.gz
+tar xf data.tar.xz
+```
+
+## Trabajando con Repositorios
+
+### Añadiendo Repositorios
+
+Para añadir los repositorios `bullseye-backports` y `sid`, edita tu fichero `sources.list`:
+
+```bash
+sudo nano /etc/apt/sources.list
+```
+
+Añade las siguientes líneas:
+
+```plaintext
+deb http://deb.debian.org/debian bullseye-backports main
+deb http://deb.debian.org/debian sid main
+```
+
+Guarda y cierra el fichero, luego ejecuta `sudo apt update` para actualizar la lista de paquetes.
+
+### Configuración de Prioridades
+
+Para configurar las prioridades de los paquetes, crea un fichero en el directorio `/etc/apt/preferences.d/`:
+
+```bash
+sudo nano /etc/apt/preferences.d/preferences
+```
+
+Añade las siguientes líneas para dar mayor prioridad a los paquetes de `bullseye` y `bullseye-backports` sobre los de `unstable`:
+
+```plaintext
+Package: *
+Pin: release a=bullseye
+Pin-Priority: 700
+
+Package: *
+Pin: release a=bullseye-backports
+Pin-Priority: 650
+
+Package: *
+Pin: release a=unstable
+Pin-Priority: 600
+```
+
+Guarda y cierra el fichero.
+
+### Soporte para Arquitectura i386
+
+Para añadir soporte para la arquitectura `i386`, ejecuta:
+
+```bash
+sudo dpkg --add-architecture i386
+sudo apt update
+```
+
+Para listar arquitecturas no nativas y para eliminar la posibilidad de descargar paquetería de la arquitectura `i386`, ejecuta:
+
+```bash
+dpkg --print-foreign-architectures
+sudo dpkg --remove-architecture i386
+sudo apt update
+```
+
+### Descargando Paquetes de Diferentes Repositorios
+
+Para descargar un paquete de un repositorio específico, puedes usar la opción `-t` con `apt`. Por ejemplo:
+
+- **Repositorio Stable**:
+  ```bash
+  sudo apt install -t stable openssh-client
+  ```
+
+- **Repositorio Buster-backports**:
+  ```bash
+  sudo apt install -t buster-backports openssh-client
+  ```
+
+- **Repositorio Sid**:
+  ```bash
+  sudo apt install -t sid openssh-client
+  ```
+
+- **Paquete de arquitectura i386**:
+  ```bash
+  sudo apt install openssh-client:i386
+  ```
+
+## Directorios Importantes
+
+- **/var/lib/apt/lists/**: Este directorio almacena la información de los paquetes y los repositorios descargados por `apt update`. Contiene listas de paquetes y sus metadatos.
+- **/var/lib/dpkg/available**: Contiene información sobre todos los paquetes disponibles en los repositorios configurados.
+- **/var/lib/dpkg/status**: Contiene información sobre el estado de los paquetes instalados y disponibles.
+- **/var/cache/apt/archives/**: Este directorio almacena los paquetes `.deb` descargados cuando instalas o actualizas paquetes. Es útil para reinstalar paquetes sin necesidad de descargarlos nuevamente.
+
+## Conclusion:
+
+Despues de haber realizado estos ejemplos claros y con la explicación teorica del otro articulo ["Paquetes en formato deb"](https://www.davidrgfoss.com/blog/Paquetes%20en%20formato%20deb), espero que os haya podido ayudar a entender un poco mejor como funciona la gestion de paquetes de la distribucion Debian o sus derivadas.
