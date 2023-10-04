@@ -9,14 +9,14 @@ jobs:
   check_branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Check if PR is to main branch
+      - name: Comprobar si el pr es de la rama desarrollo hacia la main
         id: check
         run: |
-          if [[ "${{ github.base_ref }}" == "main" ]]; then
+          if [[ "${{ github.head_ref }}" != "desarrollo" ]]; then
             echo "message=No se permite hacer pr a la rama main" >> $GITHUB_ENV
           fi
 
-      - name: Comment and close PR if to main branch
+      - name: Cerrar pull request y comentar motivo.
         if: env.message != ''
         uses: actions/github-script@v6
         with:
