@@ -2,7 +2,7 @@ name: Scan Snyk
 
 on:
   workflow_run:
-    workflows: ["Comprobación de PR para la rama main"]
+    workflows: ["Check-PR-main"]
     types:
       - completed
     
