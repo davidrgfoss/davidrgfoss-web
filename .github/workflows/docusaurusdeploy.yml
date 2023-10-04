@@ -48,7 +48,9 @@ jobs:
 
       - name: Modificar robots.txt para prevenir indexación
         if: github.ref != 'refs/heads/main'
-        run: echo "User-agent: *" > build/robots.txt && echo "Disallow: /" >> build/robots.txt
+        run: |
+          echo 'User-agent: *' > build/robots.txt
+          echo 'Disallow: /' >> build/robots.txt
 
       - name: Ficheros estaticos generados
         run: find build
