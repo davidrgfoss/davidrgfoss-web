@@ -11,7 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+        with:
+          lfs: true
+
       # Establecer valores basados en la rama
       - name: Establecer variables para MAIN
         if: github.ref == 'refs/heads/main'
