@@ -29,12 +29,6 @@ jobs:
           echo "QUANT_PROJECT=${{ secrets.QUANT_PROJECT_DEV }}" >> $GITHUB_ENV
           echo "QUANT_TOKEN=${{ secrets.QUANT_TOKEN_DEV }}" >> $GITHUB_ENV
 
-      # Borrar la web de desarrollo cuando se despliega la rama main
-      - name: Borrar el entorno de desarrollo en QuantCDN
-        if: github.ref == 'refs/heads/main'
-        run: |
-          quant delete -customer ${{ secrets.QUANT_CUSTOMER_DEV }} -project ${{ secrets.QUANT_PROJECT_DEV }} -token ${{ secrets.QUANT_TOKEN_DEV }} /
-
       - name: Comprobar dependencias en cache
         id: cache-node-modules
         uses: actions/cache@main
