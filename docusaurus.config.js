@@ -1,7 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
-const lightCodeTheme = require('prism-react-renderer/themes/github');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const {themes} = require('prism-react-renderer');
+const lightTheme = themes.github;
+const darkTheme = themes.dracula;
 const math = require('remark-math');
 const katex = require('rehype-katex');
 
@@ -18,16 +19,17 @@ const config = {
   projectName: 'Davidrg FOSS', // Usually your repo name.
 
   plugins: [
-    [
-      '@docusaurus/plugin-ideal-image',
-      {
-        quality: 100,
-        max: 1920,
-        min: 400,
-        steps: 17,
-        disableInDev: false,
-      },
-    ],
+      '@docusaurus/theme-live-codeblock',
+      [
+        '@docusaurus/plugin-ideal-image',
+        {
+          quality: 100,
+          max: 1920,
+          min: 400,
+          steps: 17,
+          disableInDev: false,
+        },
+      ],
   ],
 
   scripts: [
@@ -191,9 +193,17 @@ const config = {
         copyright: `Copyright <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Licencia de Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/80x15.png" /></a> © ${new Date().getFullYear()} Davidrg FOSS, Inc. Built with Docusaurus.<br />Este obra está bajo una <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">licencia de Creative Commons Reconocimiento-NoComercial-CompartirIgual 4.0 Internacional</a>.`,
       },
       prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        additionalLanguages: ['bash', 'diff', 'json', 'jsx', 'javascript', 'cpp', 'markup', 'git', 'markdown', 'sql', 'python', 'typescript', 'yaml', 'css', 'makefile'],
       },
+         liveCodeBlock: {
+      /**
+       * The position of the live playground, above or under the editor
+       * Possible values: "top" | "bottom"
+       */
+      playgroundPosition: 'bottom',
+    },
     }),
 };
 
