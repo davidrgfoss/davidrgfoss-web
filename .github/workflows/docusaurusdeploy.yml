@@ -10,7 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout
         with:
           lfs: true
 
@@ -33,11 +33,11 @@ jobs:
       - name: Borrar el entorno de desarrollo en QuantCDN
         if: github.ref == 'refs/heads/main'
         run: |
-          quant -customer ${{ secrets.QUANT_CUSTOMER_DEV }} -project ${{ secrets.QUANT_PROJECT_DEV }} -token ${{ secrets.QUANT_TOKEN_DEV }} delete /
+          quant delete -customer ${{ secrets.QUANT_CUSTOMER_DEV }} -project ${{ secrets.QUANT_PROJECT_DEV }} -token ${{ secrets.QUANT_TOKEN_DEV }} /
 
       - name: Comprobar dependencias en cache
         id: cache-node-modules
-        uses: actions/cache@v3
+        uses: actions/cache
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('yarn.lock') }}
@@ -65,13 +65,13 @@ jobs:
 
       - name: Fichero de revision para cache local
         id: cache-quant-revisions
-        uses: actions/cache@v3
+        uses: actions/cache
         with:
           path: .quant-revision
           key: quant-revision
 
       - name: Desplegar la web en quantcdn
-        uses: quantcdn/deploy-action@v2.0.0
+        uses: quantcdn/deploy-action
         with:
           customer: ${{ env.QUANT_CUSTOMER }}
           project: ${{ env.QUANT_PROJECT }}
@@ -80,7 +80,7 @@ jobs:
           skip-unpublish: true
 
       - name: Purgar la cache de quantcdn
-        uses: quantcdn/purge-action@v1.2.0
+        uses: quantcdn/purge-action
         with:
           customer: ${{ env.QUANT_CUSTOMER }}
           project: ${{ env.QUANT_PROJECT }}
