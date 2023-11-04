@@ -33,7 +33,7 @@ jobs:
       - name: Borrar el entorno de desarrollo en QuantCDN
         if: github.ref == 'refs/heads/main'
         run: |
-          quant -customer ${{ secrets.QUANT_CUSTOMER_DEV }} -project ${{ secrets.QUANT_PROJECT_DEV }} -token ${{ secrets.QUANT_TOKEN_DEV }} delete
+          quant -customer ${{ secrets.QUANT_CUSTOMER_DEV }} -project ${{ secrets.QUANT_PROJECT_DEV }} -token ${{ secrets.QUANT_TOKEN_DEV }} delete /
 
       - name: Comprobar dependencias en cache
         id: cache-node-modules
