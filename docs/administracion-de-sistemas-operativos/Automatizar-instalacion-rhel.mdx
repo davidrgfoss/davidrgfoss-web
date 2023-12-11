@@ -8,13 +8,17 @@ sidebar_position: 2
 
 Para realizar esta tarea vamos a tener un entorno de red montado sobre "KVM" con las siguientes características.
 
-* Maquina RHEL 9 servidor:
+* Maquina RHEL 9.3 servidor:
 	* Dos adaptadores de red, el primero estará como adaptador puente y el segundo configurado como red muy aislada.
 	* La configuración de red sera estática para la red interna.
 	* Necesitara 2GB de RAM y 2 cores para la CPU.
 * Maquina RHEL 9 cliente:
 	* Una daptador de red configurado como red muy aislada.
 	* Misma configuración de hardware que el servidor.
+
+:::danger
+Se ha modificado este articulo y añadido la opcion para tener tambien `Debian` en `PXE`
+:::
 
 ## Introducción
 
@@ -26,14 +30,14 @@ En este apartado vamos a automatizar la instalación desde un fichero “ISO”,
 
 En este fichero podemos escribir diferentes opciones que nos permitira configurar el sistema a cumpliento nuestros requisitos. Yo he realizado para realizar una instalación bastante simple, con la única complejidad de haber creado una partición **“LVM”** con sus volúmenes lógicos, separando los puntos de montajes **“/root, /var, /home”** en diferentes volúmenes. A continuación veremos el fichero que he creado con cada parte importante comentada en el mismo fichero, de esta forma podremos ver que hace cada opción usada.
 
-```jsx
+```bash
 # Especificamos que vamos a usar el instalador en modo gráfico.
 graphical
 
 # Se añade el repositorio que va a usar para obtener los paquetes a instalar.
 repo --name="AppStream" --baseurl=file:///run/install/sources/mount-0000-cdrom/AppStream
 
-#Se activa la característica del kernel para el volcado de memoria en caso de fallo crítico.
+# Se activa la característica del kernel para el volcado de memoria en caso de fallo crítico.
 %addon com_redhat_kdump --enable --reserve-mb='auto'
 %end
 
@@ -54,7 +58,7 @@ cdrom
 @system-tools
 %end
 
-# Tour inicial para el uso del escritorio la primera vez que iniciamos sesión
+# Tour inicial para el uso del escritorio la primera vez que iniciamos sesión.
 firstboot --enable
 
 # Escogemos usar solo el disco “vda” ignorando el resto de discos.
@@ -65,12 +69,13 @@ zerombr
 clearpart --all --initlabel
 
 # Especificamos el particionado de nuestro disco donde vamos a instalar el sistema.
-part pv.111 --fstype="lvmpv" --ondisk=vda --size=91135
+part /boot/efi --fstype="efi" --ondisk=vda --size=200 --label=EFI
+part pv.111 --fstype="lvmpv" --ondisk=vda --size=90935  # Reducido para acomodar EFI
 part /boot --fstype="xfs" --ondisk=vda --size=1024
 volgroup rhel --pesize=4096 pv.111
 logvol swap --fstype="swap" --size=4042 --name=swap --vgname=rhel
 logvol /var --fstype="xfs" --size=14305 --name=var --vgname=rhel
-logvol / --fstype="xfs" --size=44207 --name=root --vgname=rhel
+logvol / --fstype="xfs" --size=44007 --name=root --vgname=rhel  # Reducido en 200 MB
 logvol /home --fstype="xfs" --grow --size=500 --name=home --vgname=rhel
 
 # Configuración de la zona horaria.
@@ -82,6 +87,7 @@ user --groups=wheel --name=usuario --password=$6$E1dKf.G/wtRJu6Np$UMaN70rm8oe2a3
 
 # Reiniciamos el sistema cuando la instalación termine.
 reboot
+
 ```
 Este fichero lo vamos a guardar dentro de la “ISO”, de esa forma el instalador podrá ejecutar estos pasos sin supervisión de una persona y totalmente automatizado.
 
@@ -90,7 +96,7 @@ Este fichero lo vamos a guardar dentro de la “ISO”, de esa forma el instalad
 Para realizar este proceso, primero deberemos montar nuestra imagen ISO en nuestro sistema, una vez montada podremos copiar todos los ficheros a un directorio temporal que crearemos dentro de ***“/tmp”*** para poder editar los ficheros. Una vez editado para especificar el uso del fichero “ks.cfg”, crearemos una nueva **“ISO”** que usaremos para instalar el sistema. Para realizar esta tarea deberemos hacer los siguientes pasos, en la mayoría necesitaremos permisos de administrador, por lo que aconsejo usar el usuario ***“root”***.
 
 * Montar “ISO” y hacer una copia de todos los ficheros:
- ```jsx
+ ```bash
  mount -o loop rhel-baseos-9.0-x86_64-dvd.iso /mnt
  mkdir /tmp/rhel9 && cp -avRf /mnt/* /tmp/rhel9 && cd /tmp/rhel9
  ```
@@ -99,7 +105,7 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
 :::
 
 * Editamos el fichero de arranque de “isolinux/isolinux.cfg” y eliminamos las siguientes líneas:
- ```jsx
+ ```bash
  label linux
   menu label ^Install Red Hat Enterprise Linux 9.0
   kernel vmlinuz
@@ -112,7 +118,7 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
   append initrd=initrd.img inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 rd.live.check quiet
  ```
 * Luego en la misma ubicación de las líneas anteriores añadimos lo siguiente:
- ```jsx
+ ```bash
  label linux
   menu label ^Automate Install RHEL9
   menu default
@@ -121,7 +127,7 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
 
  ```
 * Modificamos el fichero ***“EFI/BOOT/grub.cfg”*** cambiando el parámetro **“set default”** de la primera línea a 0 y eliminando las siguientes líneas:
- ```jsx
+ ```bash
  menuentry 'Install Red Hat Enterprise Linux 9.0' --class fedora --class gnu-linux --class gnu --class os {
 	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 quiet
 	initrdefi /images/pxeboot/initrd.img
@@ -132,7 +138,7 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
 }
  ```
 * Luego en el mismo sitio, escribimos las siguientes líneas:
- ```jsx
+ ```bash
  menuentry 'Install Automate RHEL9' --class fedora --class gnu-linux --class gnu --class os {
     linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 inst.ks=cdrom:/ks.cfg
     initrdefi /images/pxeboot/initrd.img
@@ -141,7 +147,7 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
 Con lo anterior habremos creado la configuración necesaria para que el instalador sepa donde estará ubicado el fichero “ks.cfg”, hay que señalar que este proceso solo funcionaria con “RHEL 9”, en caso de usar otra versión tenemos que modificar la etiqueta “LABEL” por el nombre correcto de la versión usada. Este nombre podemos obtenerlo con el comando “blkid fichero.iso”.
 
 * Copiamos el fichero “ks.cfg” dentro del directorio “/tmp/rhel9” y generamos la “ISO” a partir de este directorio con el siguiente comando:
- ```jsx
+ ```bash
  mkisofs -o /tmp/rhel9A.iso -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "RHEL-9-0-0-BaseOS-x86_64" .
  ```
 :::danger Precaupción
@@ -149,12 +155,12 @@ Este último comando debemos asegurarnos que no nos hemos saltado nada, incluido
 :::
 
 * Añadimos la funcionalidad de “isohybrid” para que esta imagen pueda ser iniciada desde unidades de almacenamientos no ópticos e introducimos una suma “md5” de la siguiente forma:
- ```jsx
+ ```bash
  isohybrid --uefi /tmp/rhel9A.iso
  implantisomd5 /tmp/rhel9A.iso
  ```
 * Como último paso movemos la imagen a nuestro directorio y aplicamos los permisos correctos para que lo use nuestro usuario con los comandos:
- ```jsx
+ ```bash
  cp /tmp/rhel9A.iso /home/davidrg
  chown davidrg:davidrg /home/davidrg/rhel9A.iso && chmod 744 /home/davidrg/rhel9A.iso
  ```
@@ -167,7 +173,7 @@ En esta segunda parte vamos a pasar la instalación y el fichero para automatiza
 
 Antes de explicar la configuración de los servicios voy a mostrar mi fichero “ks.cfg” que para esta situación tendrá algunas modificaciones, ya que ahora debemos especificar que el medio de instalación de dónde va a provenir los datos es un servidor web.
 
-```jsx
+```bash
 # Especificamos que vamos a usar el instalador en modo gráfico.
 graphical
 
@@ -175,10 +181,10 @@ graphical
 repo --name="AppStream" --baseurl=http://10.0.0.1/rhel/AppStream
 repo --name="BaseOS" --baseurl=http://10.0.0.1/rhel/BaseOS
 
-# Especificamos el servidor que contendra todos los datos de la imagen que vamos a instalar.
+# Especificamos el servidor que contendrá todos los datos de la imagen que vamos a instalar.
 url --url=http://10.0.0.1/rhel
 
-#Se activa la característica del kernel para el volcado de memoria en caso de fallo crítico.
+# Se activa la característica del kernel para el volcado de memoria en caso de fallo crítico.
 %addon com_redhat_kdump --enable --reserve-mb='auto'
 %end
 
@@ -189,8 +195,6 @@ lang es_ES.UTF-8
 # Configuración de red, en este caso para una tarjeta de red ethernet configurada por DHCP.
 network  --bootproto=dhcp --device=enp1s0 --ipv6=auto --activate
 
-
-
 # Grupo de paquetes que vamos a instalar en nuestro sistema operativo.
 %packages
 @^graphical-server-environment
@@ -198,7 +202,7 @@ network  --bootproto=dhcp --device=enp1s0 --ipv6=auto --activate
 @system-tools
 %end
 
-# Tour inicial para el uso del escritorio la primera vez que iniciamos sesión
+# Tour inicial para el uso del escritorio la primera vez que iniciamos sesión.
 firstboot --enable
 
 # Escogemos usar solo el disco “vda” ignorando el resto de discos.
@@ -209,12 +213,13 @@ zerombr
 clearpart --all --initlabel
 
 # Especificamos el particionado de nuestro disco donde vamos a instalar el sistema.
-part pv.111 --fstype="lvmpv" --ondisk=vda --size=91135
+part /boot/efi --fstype="efi" --ondisk=vda --size=200 --label=EFI
+part pv.111 --fstype="lvmpv" --ondisk=vda --size=90935  # Reducido para acomodar EFI
 part /boot --fstype="xfs" --ondisk=vda --size=1024
 volgroup rhel --pesize=4096 pv.111
 logvol swap --fstype="swap" --size=4042 --name=swap --vgname=rhel
 logvol /var --fstype="xfs" --size=14305 --name=var --vgname=rhel
-logvol / --fstype="xfs" --size=44207 --name=root --vgname=rhel
+logvol / --fstype="xfs" --size=44007 --name=root --vgname=rhel  # Reducido en 200 MB
 logvol /home --fstype="xfs" --grow --size=500 --name=home --vgname=rhel
 
 # Configuración de la zona horaria.
@@ -228,18 +233,108 @@ user --groups=wheel --name=usuario --password=$6$E1dKf.G/wtRJu6Np$UMaN70rm8oe2a3
 reboot
 ```
 
+## Fichero `Debian-preseed.cfg"
+```bash
+# Idioma, país y configuración del teclado
+d-i debian-installer/locale string es_ES.UTF-8
+d-i keyboard-configuration/xkb-keymap select es
+
+# Configuración de la red
+d-i netcfg/choose_interface select auto
+d-i netcfg/dhcp_timeout string 60
+d-i netcfg/get_hostname string debian
+d-i netcfg/get_domain string unassigned-domain
+
+# Espejos de Debian
+d-i mirror/country string manual
+d-i mirror/http/hostname string deb.debian.org
+d-i mirror/http/directory string /debian
+d-i mirror/http/proxy string
+
+# Configuración de reloj y zona horaria
+d-i clock-setup/utc boolean true
+d-i time/zone string Europe/Madrid
+
+# Particionado del disco
+d-i partman-auto/disk string /dev/vda
+d-i partman-auto/method string lvm
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-auto/choose_recipe select multi
+d-i partman-auto/expert_recipe string                         \
+      boot-root ::                                            \
+              200 50 200 ext4                                 \
+                      $primary{ } $bootable{ }                \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ /boot }                     \
+              .                                               \
+              500 10000 1000000000 ext4                       \
+                      method{ lvm } device{ /dev/vda2 }       \
+                      vg_name{ rhel }                         \
+              .                                               \
+              4042 4042 4042 linux-swap                       \
+                      $lvmok{ } in_vg{ rhel } lv_name{ swap } \
+                      method{ swap } format{ }                \
+              .                                               \
+              14305 14305 14305 ext4                          \
+                      $lvmok{ } in_vg{ rhel } lv_name{ var }  \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ /var }                      \
+              .                                               \
+              44007 44007 44007 ext4                          \
+                      $lvmok{ } in_vg{ rhel } lv_name{ root } \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ / }                         \
+              .                                               \
+              500 1000 1000000000 ext4                        \
+                      $lvmok{ } in_vg{ rhel } lv_name{ home } \
+                      method{ format } format{ }              \
+                      use_filesystem{ } filesystem{ ext4 }    \
+                      mountpoint{ /home }                     \
+              .
+d-i partman/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+
+# Configuración de la cuenta de usuario y root
+d-i passwd/root-login boolean false
+d-i passwd/make-user boolean true
+d-i passwd/user-fullname string usuario
+d-i passwd/username string usuario
+d-i passwd/user-password-crypted password $6$E1dKf.G/wtRJu6Np$UMaN70rm8oe2a3rEmZ1nLZHS3BAH58QgAg94m5AN6N5tmQnXIdJgyUvi92sCcKqvtMdEGZ7BJyLH1GwKD6ftF.
+d-i user-setup/allow-password-weak boolean false
+d-i user-setup/encrypt-home boolean false
+
+# Selección de paquetes
+tasksel tasksel/first multiselect standard, desktop
+
+# Opciones de arranque del sistema
+d-i grub-installer/only_debian boolean true
+d-i grub-installer/with_other_os boolean true
+d-i finish-install/reboot_in_progress note
+
+# Seleccionamos reiniciar después de la instalación
+d-i debian-installer/exit/reboot boolean true
+```
+
+
 ## Servidor HTTP
 
 Este servicio será el que realizará todo el trabajo de pasar los datos y paquetes a instalar. Antes de empezar necesitaremos instalar algunos paquetes, de paso instalaremos los siguientes servicios ahora también.
 
 * Instalamos los paquetes de la siguiente forma:
- ```jsx
+ ```bash
  dnf update
  dnf install httpd tftp-server dhcp-server syslinux
  ```
 
 * Para configurar el servidor web vamos a modificar diferentes ficheros, el primero de ellos sera el fichero “/etc/httpd/conf/httpd.conf”. En este fichero deberemos  buscar el siguiente apartado:
- ```jsx
+ ```bash
  <Directory "/var/www/html">
     Options Indexes FollowSymLinks
     AllowOverride All
@@ -250,7 +345,7 @@ Este servicio será el que realizará todo el trabajo de pasar los datos y paque
 Aquí modificaremos la línea “Options Indexes FollowSymLinks” añadiendo al final el parámetro “MultiViews”. A continuación dejaré una copia completa de mi fichero, aunque de serie viene el mismo contenido lleno de comentarios explicando cada apartado, por lo que veo innecesario explicarlo yo y tampoco es la temática del artículo.
 
 * Mi Fichero /etc/httpd/conf/httpd.conf:
- ```jsx
+ ```bash
 	ServerRoot "/etc/httpd"
 	Listen 10.0.0.1:80
 	Include conf.modules.d/*.conf
@@ -340,7 +435,7 @@ Si tenemos en cuenta la advertencia que vimos en el primer apartado sobre el fic
  > IndexIgnore *~ *# HEADER* README* RCS CVS *,v *,t
 
 * Al igual que en el caso anterior dejare una copia completa de mi fichero a continuación:
- ```jsx
+ ```bash
 	IndexOptions FancyIndexing HTMLTable VersionSort
 	Alias /icons/ "/usr/share/httpd/icons/"
 	<Directory "/usr/share/httpd/icons">
@@ -380,10 +475,13 @@ Si tenemos en cuenta la advertencia que vimos en el primer apartado sobre el fic
  ```
 
 * Una vez configurado todo lo necesario, copiaremos el fichero “ks.cfg” y también todo el contenido de la imagen del sistema de la siguiente forma:
- ```jsx
+ ```bash
 	cp  /home/usuario/ks.cfg /var/www/html
 	mount -o loop rhel-baseos-9.0-x86_64-dvd.iso /mnt
 	mkdir /var/www/html/rhel && cp -avRf /mnt/* /var/www/html/rhel
+	umount /mnt
+	mount -o loop debian-12.4.0-amd64-netinst.iso /mnt
+	mkdir /var/www/html/debian && cp -avRf /mnt/* /var/www/html/rhel
 	chown -R apache:apache /var/www/html
 	umount /mnt
  ```
@@ -393,7 +491,7 @@ Si tenemos en cuenta la advertencia que vimos en el primer apartado sobre el fic
 En el servidor “DHCP” tendremos que configurar un ámbito que de una configuración de red a los clientes y también le pueda indicar el fichero que deben obtener desde el servidor “TFTP” para poder arrancar por “PXE” el instalador. Esto es una configuración básica y con ninguna complejidad.
 
 * Solo deberemos modificar el fichero ***“/etc/dhcp/dhcpd.conf”*** el cual está vacío y añadir lo siguiente:
- ```jsx
+ ```bash
 	non-authoritative;
 	allow bootp;
 	option space pxelinux;
@@ -419,17 +517,19 @@ En el servidor “DHCP” tendremos que configurar un ámbito que de una configu
 En este servicio realizaremos una configuración mínima, solo se encargará de pasar los parámetros del arranque por red y la imagen de arranque para que se pueda iniciar todo el proceso. A partir de ese punto será el servidor web quien se encargue de enviar todos los datos. 
 
 * Copiamos los ficheros de arranques necesario para el ***“PXE”***:
- ```jsx
+ ```bash
 	cp -Rf /usr/share/syslinux/* /var/lib/tftpboot
 	mkdir /var/lib/tftpboot/rhel
+	mkdir /var/lib/tftpboot/debian
 	cp -Rf /var/www/html/rhel/images/pxeboot/* /var/lib/tftpboot/rhel
+	cp /var/www/html/debian/install.amd/* /var/lib/tftpboot/debian/
 	mkdir /var/www/tftpboot/pxelinux.cfg
  ```
 
 * Ahora creamos el menú de arranque donde especificaremos la ruta donde están los datos de la imagen y la ruta hacia el fichero “ks.cfg”.
 
 * Fichero ***"/var/www/tftpboot/pxelinux.cfg/default"***:
- ```jsx
+ ```bash
 	default menu.c32
 	prompt 0
 	timeout 300
@@ -440,6 +540,11 @@ En este servicio realizaremos una configuración mínima, solo se encargará de 
 	menu label ^Install RedHat 9
 	kernel rhel/vmlinuz
 	append initrd=rhel/initrd.img ip=dhcp inst.ks=http://10.0.0.1/ks.cfg inst.repo=http://10.0.0.1/rhel
+
+	label 2
+	menu label ^Install Debian 12
+	kernel debian/vmlinuz
+	append initrd=debian/initrd.gz ip=dhcp preseed/url=http://10.0.0.1/debian-preseed.cfg
  ```
 
 ## Poner en funcionamiento los servicios
@@ -447,7 +552,7 @@ En este servicio realizaremos una configuración mínima, solo se encargará de 
 El sistema de “Red Hat” incluye diferentes medidas de seguridad por defecto, ahora tendremos que activar todos los servicios y añadir reglas al cortafuegos para que funcionen correctamente.
 
 * Activamos los servicios:
- ```jsx
+ ```bash
 	systemctl disable dnsmasq
 	systemctl stop dnsmasq
 	systemctl enable httpd
@@ -459,7 +564,7 @@ El sistema de “Red Hat” incluye diferentes medidas de seguridad por defecto,
  ```
 
 * Añadimos las reglas del cortafuegos para que funcionen los servicios correctamentes:
- ```jsx
+ ```bash
 	firewall-cmd --add-service=http --add-service=tftp --add-service=dhcp --permanent
 	firewall-cmd –reload
  ```

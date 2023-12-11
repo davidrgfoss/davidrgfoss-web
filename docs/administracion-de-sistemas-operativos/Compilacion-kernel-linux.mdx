@@ -6,7 +6,7 @@ sidebar_position: 4
 
 ## Requisitos/recomendaciones
 
-Para realizar esta tarea voy a usar una distribución **"Debian 11"**.
+Para realizar esta tarea voy a usar una distribución **"Debian 12"**.
 
 ## Introducción
 
@@ -116,37 +116,101 @@ También es posible no usar la imagen ***“initrd”*** y solo usar ***“vmlin
 ## Proceso para compilar un “Kernel” paso a paso
 
 1. Primero debemos descargar el kernel que vamos a instalar, en nuestro caso usaremos la versión **“5.15.83”**. Este podemos descargarlo desde la web https://www.kernel.org/. Con el siguiente comando podemos descargarlo en nuestra maquina.
-    ```jsx
-    wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.83.tar.xz
+    ```bash
+    wget https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.6.5.tar.xz
     ```
 2. Para descomprimir este fichero comprimido usamos el comando:
-    ```jsx
-    tar -avxf linux-5.15.83.tar.xz
+    ```bash
+    tar -xvzf linux-6.6.5.tar.xz
     ```
 3. Instalamos todas las dependencias necesarias para que no de errores la compilación con el siguiente comando:
-    ```jsx
-    apt install gcc make perl libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf bc rsync pkg-config wget
+    ```bash
+    apt install gcc make perl libncurses-dev flex bison openssl libssl-dev dkms libelf-dev libudev-dev libpci-dev libiberty-dev autoconf bc rsync pkg-config wget debhelper dwarves g++
     ```
 4. En mi caso generará el fichero **“.config”** con los módulos actualmente en uso quitando el resto, esto lo haré con el comando:
-    ```jsx
+    ```bash
     make localmodconfig
     ```
 5. Luego he quitado algunas opciones más con el comando: 
-    ```jsx
+    ```bash
     make menuconfig
     ```
 6. Ahora compilamos el núcleo con las opciones que hemos introducido, podemos compilarlos de muchas formas, en mi caso lo haré creando unos paquetes ***".deb"*** que luego podemos instalar o desinstalar de forma sencilla. Esto se hace con el comando:
-    ```jsx
+    ```bash
     make -j4 bindeb-pkg
     ```
 7. A continuación dejaré unas capturas para que veamos el tamaño del nuevo ***“Kernel”*** así como el de los paquetes deb y prueba de funcionamiento.
 
 ### Comprobando el resultado de la compilación
 
-* Ficheros del nuevo ***"Kernel"***:
+* Comprobando el nuevo ***"Kernel"*** en funcionamiento y la cantidad de modulos que tiene:
 
-    ![Comprobación de los ficheros generados al compilar](/img/compilacion-kernel/kernel-files.png)
+    ![Comprobando que el nuevo Kernel funciona](/img/compilacion-kernel/kernel-6_1.png)
 
-* Comprobando el nuevo ***"Kernel"*** en funcionamiento:
 
-    ![Comprobando que el nuevo Kernel funciona](/img/compilacion-kernel/kernel-on.png)
+## Secure Boot para el Kernel Compilado
+
+Cuando se trata de sistemas con **Secure Boot** activado, hay que realizar pasos adicionales para asegurar que el kernel personalizado arranque correctamente. 
+Secure Boot es una característica de seguridad presente en sistemas modernos que forma parte del estándar UEFI (Interfaz de Firmware Extensible Unificada). Su función principal es aumentar la seguridad del proceso de arranque del sistema operativo verificando que todo el software cargado durante el arranque sea confiable y no haya sido alterado. Para que un kernel compilado manualmente funcione en un sistema con Secure Boot debemos firmarlo con una clave que confirme su veracidad. Eso lo haremos con los siguientes pasos.
+
+1. Instala las herramientas necesarias para crear tus propias claves y certificados. En sistemas basados en Debian:
+
+  ```bash
+  sudo apt-get install mokutil sbsigntool
+  ```
+
+2. Genera tu propia clave y certificado:
+
+  ```bash
+  openssl req -new -x509 -newkey rsa:2048 -keyout MOK.priv -outform DER -out MOK.der -nodes -days 36500 -subj "/CN=davidrgfoss/"
+  ```
+
+3. Registra la clave en el MOK del sistema:
+
+  ```bash
+  sudo mokutil --import MOK.der
+  ```
+
+  Al reiniciar, se te pedirá que confirmes la adición de la clave. Sigue las instrucciones en pantalla para completar el proceso.
+
+  :::warning Aviso
+  Estos tres primeros pasos deberiamos realizarlo antes de compilar el kernel por comodidad.
+  :::
+
+4. Una vez que hayas compilado tu kernel, fírmalo con tu clave:
+
+  ```bash
+  sudo sbsign --key MOK.priv --cert /home/davidrg/MOK.der /boot/vmlinuz-6.6.5 --output /boot/vmlinuz-6.6.5.signed
+  ```
+
+5. Finalmente, actualiza tu gestor de arranque (por ejemplo, GRUB) para que cargue el kernel firmado:
+
+  ```bash
+  sudo update-grub2
+  ```
+
+6. Puede darse el caso de que nuestro sistema no este creando de forma correcta la entrada en el `grub` porque añade una entrada al `kernel 6.6.5.signed` y no al `initrd 6.6.5.` En este caso añadimos lo siguiente al fichero `/etc/grub.d/40_custom`:
+
+  ```bash
+    #!/bin/sh
+    exec tail -n +3 $0
+    # This file is an example custom entry for a signed kernel
+
+    menuentry 'Debian GNU/Linux, with Linux 6.6.5.signed' --class debian --class gnu-linux --class gnu --class os {
+        load_video
+        insmod gzio
+        insmod part_gpt
+        insmod ext2
+        search --no-floppy --fs-uuid --set=root 80bc4e3e-22be-48e1-b8b5-9d06d9bbbb0d
+        echo    'Loading Linux 6.6.5.signed ...'
+        linux   /boot/vmlinuz-6.6.5.signed root=/dev/vda2 ro quiet
+        echo    'Loading initial ramdisk ...'
+        initrd  /boot/initrd.img-6.6.5
+    }
+  ```
+
+### Comprobando el resultado de la compilación con `secure boot`
+
+* Comprobando el nuevo ***"Kernel"*** en funcionamiento y la cantidad de modulos que tiene:
+
+    ![Comprobando que el nuevo Kernel funciona](/img/compilacion-kernel/kernel-6_secure.png)
