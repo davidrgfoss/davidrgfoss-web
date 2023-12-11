@@ -1,0 +1,342 @@
+---
+sidebar_position: 10
+---
+
+# Introducción a los Módulos del Kernel de Linux
+
+Los módulos del kernel de Linux son componentes esenciales que aportan flexibilidad y eficiencia al sistema operativo. Estos módulos, esencialmente piezas de código, pueden cargarse y descargarse en el kernel de Linux según sea necesario, sin la necesidad de reiniciar el sistema. Esta característica es fundamental para administrar el kernel de manera dinámica y eficiente.
+
+## ¿Qué son los Módulos del Kernel?
+
+Un módulo del kernel es un archivo de objeto que contiene código que puede ser ejecutado dentro del kernel. Estos módulos extienden la funcionalidad del kernel, permitiendo al sistema operativo soportar una amplia gama de hardware, sistemas de archivos y otras capacidades que no están incluidas en el kernel principal.
+
+## Ventajas de los Módulos
+
+- **Flexibilidad**: Los módulos pueden ser cargados y descargados según sea necesario, lo que permite una personalización extensa del kernel.
+- **Eficiencia**: Al cargar sólo los módulos necesarios, se reduce el uso de recursos del sistema.
+- **Desarrollo y Mantenimiento**: Facilitan el desarrollo y actualización de características del kernel sin afectar el núcleo del sistema operativo.
+
+Los módulos del kernel de Linux desempeñan un papel crucial en la operatividad del sistema. Vamos a profundizar en su funcionamiento, cómo y cuándo se cargan o activan, y qué los hace tan vitales para la gestión del kernel.
+
+## Funcionamiento detallado
+
+### Naturaleza de los Módulos
+Un módulo del kernel, en esencia, es un archivo `.ko` (kernel object). Estos módulos contienen código que se ejecuta en el espacio del kernel, permitiendo realizar operaciones a nivel de sistema que no serían posibles desde el espacio de usuario.
+
+### Carga y Activación
+La carga de módulos se realiza mediante herramientas como `insmod`, `modprobe` y `depmod`. Estas herramientas manejan las dependencias y aseguran que el módulo se integre correctamente en el kernel. `insmod` carga el módulo sin resolver dependencias, mientras que `modprobe` es más avanzado y se encarga de las dependencias automáticamente.
+
+Los módulos se pueden cargar en dos situaciones:
+1. **Manualmente**: Los administradores de sistemas pueden cargar módulos específicos en función de las necesidades del sistema.
+2. **Automáticamente**: Algunos módulos se cargan automáticamente al arrancar el sistema o al conectar un nuevo dispositivo de hardware.
+
+### Interacción con el Kernel
+Los módulos interactúan con el kernel mediante interfaces bien definidas. Al cargar un módulo, se registran funciones y se expone una interfaz que el kernel o otros módulos pueden utilizar. Cuando un módulo ya no es necesario, se puede descargar del kernel utilizando `rmmod` o `modprobe -r`, liberando así los recursos del sistema.
+
+## Consideraciones Técnicas
+
+- **Seguridad**: Los módulos ejecutan código a nivel de kernel, por lo que cualquier error o vulnerabilidad en un módulo puede afectar la estabilidad y seguridad del sistema.
+- **Compatibilidad**: Los módulos deben ser compatibles con la versión del kernel en uso. Un módulo compilado para una versión específica del kernel podría no funcionar correctamente en otra.
+
+
+# Ejercicios con modulos
+
+## 1. Comprueba los módulos cargados en tu equipo
+```bash
+lsmod
+```
+
+## 2. Cuenta el número de módulos disponibles en el núcleo que estás usando
+```bash
+lsmod | wc -l
+```
+
+## 3. Conecta un lápiz USB y observa la salida de la instrucción sudo dmesg
+```bash
+[81725.195113] usb 2-3: new SuperSpeed USB device number 2 using xhci_hcd
+[81725.220630] usb 2-3: New USB device found, idVendor=0951, idProduct=1666, bcdDevice= 1.10
+[81725.220645] usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[81725.220652] usb 2-3: Product: DataTraveler 3.0
+[81725.220657] usb 2-3: Manufacturer: Kingston
+[81725.220661] usb 2-3: SerialNumber: E0D55E1F394CE721390607AB
+[81725.244676] usb-storage 2-3:1.0: USB Mass Storage device detected
+[81725.244780] scsi host0: usb-storage 2-3:1.0
+[81725.244883] usbcore: registered new interface driver usb-storage
+[81725.246568] usbcore: registered new interface driver uas
+[81726.264681] scsi 0:0:0:0: Direct-Access     Kingston DataTraveler 3.0 PMAP PQ: 0 ANSI: 6
+[81726.264965] sd 0:0:0:0: Attached scsi generic sg0 type 0
+[81726.265153] sd 0:0:0:0: [sda] 242221056 512-byte logical blocks: (124 GB/116 GiB)
+[81726.265629] sd 0:0:0:0: [sda] Write Protect is off
+[81726.265632] sd 0:0:0:0: [sda] Mode Sense: 45 00 00 00
+[81726.266103] sd 0:0:0:0: [sda] Write cache: disabled, read cache: enabled, doesn\'t support DPO or FUA
+[81726.583054]  sda: sda1 sda2
+[81726.583216] sd 0:0:0:0: [sda] Attached SCSI removable disk
+[81726.594221] io scheduler bfq registered
+[81726.964636] ntfs3: Max link count 4000
+[81726.964639] ntfs3: Enabled Linux POSIX ACLs support
+[81726.964640] ntfs3: Read-only LZX/Xpress compression included
+```
+En el texto anterior podemos ver que se reconoce el USB, el fabricante y nombre del mismo, así como su tamaño. Esto se logra gracias a la interacción de los módulos cargados y no cargados en el sistema. Vamos a profundizar en cómo esto afecta la funcionalidad del sistema.
+
+### Módulos Cargados en el Sistema
+
+Cuando un dispositivo USB se conecta al sistema, el kernel de Linux utiliza módulos específicos que están cargados para reconocer y manejar el dispositivo. Estos módulos pueden incluir:
+
+- **Controladores de USB**: Permiten al kernel interactuar con los dispositivos USB de manera genérica.
+- **Controladores Específicos del Dispositivo**: Proporcionan soporte para funciones específicas del dispositivo conectado, como un almacenamiento USB o un teclado.
+
+Estos módulos cargados son esenciales para que el sistema reconozca y utilice correctamente los dispositivos USB.
+
+### Módulos No Cargados
+
+Los módulos no cargados son aquellos que no están en uso activo por el kernel en un momento dado. Estos módulos pueden incluir soporte para hardware que no está presente en el sistema o funcionalidades que no se están utilizando actualmente. Aunque no están activos, pueden ser cargados dinámicamente cuando el sistema los requiera.
+
+### Gestión de Dependencias
+
+La carga de un módulo a menudo depende de otros módulos. Por ejemplo, un controlador de dispositivo específico puede requerir un módulo de sistema de archivos o un controlador genérico de USB para funcionar correctamente. El sistema se encarga de resolver estas dependencias automáticamente al cargar los módulos, asegurando que todos los componentes necesarios estén presentes y funcionales.
+
+### Explicacion del mensaje dmesg
+
+1. **xhci_hcd**
+   - **Descripción**: Controlador del host USB para USB 3.x, conocido como eXtensible Host Controller Interface.
+   - **Activación**: Se activa al conectar un dispositivo USB 3.x al sistema, manejando la interacción entre el dispositivo y el sistema operativo.
+   - **Verificación**: Para confirmar si este módulo está en funcionamiento, ejecuta `lsmod | grep xhci_hcd`.
+
+2. **usb-storage**
+   - **Descripción**: Gestiona el almacenamiento masivo USB, como unidades flash o discos duros externos.
+   - **Activación**: Se activa al conectar un dispositivo de almacenamiento USB.
+   - **Verificación**: Comprueba su estado con `lsmod | grep usb_storage`.
+
+3. **uas (USB Attached SCSI)**
+   - **Descripción**: Mejora el rendimiento de los dispositivos de almacenamiento USB usando el protocolo SCSI sobre USB.
+   - **Activación**: Se pone en marcha con la conexión de dispositivos de almacenamiento USB compatibles con UAS.
+   - **Verificación**: Usa `lsmod | grep uas` para verificar su actividad.
+
+4. **scsi_mod y sd_mod**
+   - **Descripción**: `scsi_mod` es el controlador para el subsistema SCSI, y `sd_mod` se aplica a dispositivos de almacenamiento SCSI, incluyendo muchos USB.
+   - **Activación**: Se emplean para dispositivos de almacenamiento que usan el protocolo SCSI.
+   - **Verificación**: Comprueba su estado con `lsmod | grep scsi_mod` y `lsmod | grep sd_mod`.
+
+
+## 4. Elimina el módulo correspondiente a algún dispotivo no esencial y comprueba qué ocurre. Vuelve a cargarlo
+
+1. Eliminar el Módulo
+```bash
+sudo rmmod lp
+```
+
+Este comando removerá el módulo `lp` del kernel. Es esencial usar `sudo` para obtener permisos de administrador, ya que la manipulación de módulos del kernel requiere privilegios elevados.
+
+2. Verificar la Eliminación
+```bash
+lsmod | grep lp
+```
+
+Si el comando no devuelve ninguna salida, significa que el módulo ha sido eliminado correctamente.
+
+3. Observar los Efectos
+
+Una vez eliminado el módulo, observa el comportamiento del sistema. En este caso, como `lp` está relacionado con las impresoras paralelas, no deberías notar ningún cambio inmediato, a menos que estés utilizando una impresora de este tipo.
+
+4. Añadir de nuevo el Módulo
+
+```bash
+sudo modprobe lp
+```
+
+Este comando no solo carga el módulo `lp`, sino que también gestiona automáticamente las dependencias del módulo.
+
+5. Verificar que el modulo esta cargado
+```bash
+lsmod | grep lp
+```
+
+Si el módulo se muestra en la salida, entonces ha sido recargado con éxito.
+
+
+## 5. Selecciona un módulo que esté en uso en tu equipo y configura el arranque para que no se cargue automáticamente
+
+1. Configurar el Sistema para no Cargar el Módulo
+
+Para prevenir la carga automática de un módulo en el arranque, debes agregarlo a la lista negra del sistema. Esto se hace editando o creando un archivo en `/etc/modprobe.d/`. Por ejemplo, puedes crear un archivo llamado `blacklist.conf` (si no existe) y añadir el módulo a la lista negra:
+
+* Abre el archivo con un editor de texto, como `nano`:
+
+    ```bash
+    sudo nano /etc/modprobe.d/blacklist.conf
+    ```
+
+* Añade una línea al final del archivo para poner en la lista negra el módulo. Por ejemplo:
+
+    ```plaintext
+    blacklist btusb
+    ```
+
+2. Reiniciar el Sistema
+
+```bash
+sudo reboot
+```
+
+3. Verificar la Configuración
+
+```bash
+lsmod | grep btusb
+```
+
+Si no aparece en la lista, significa que se ha configurado correctamente y no se carga en el arranque.
+
+
+## 5. Carga el módulo loop, obtén información de qué es y para qué sirve. Lista el contenido de /sys/modules/loop/parameters y configura el equipo para que se puedan cargar como máximo 12 dispositvos loop la próxima vez que se arranque.
+
+El comando `ls /sys/module/loop/parameters` lista los parámetros configurables para el módulo `loop` en el sistema Linux.
+
+* **hw_queue_depth**
+   - Este parámetro define la profundidad de la cola de hardware para los dispositivos loop. En términos simples, se refiere a cuántas operaciones de E/S (entrada/salida) pueden estar en cola en un momento dado para cada dispositivo loop. Este valor puede influir en el rendimiento de los dispositivos loop, especialmente en situaciones de carga alta.
+
+* **max_loop**
+   - Este parámetro determina el número máximo de dispositivos loop que pueden existir simultáneamente en el sistema. Al aumentar este número, permites que se creen más dispositivos loop, lo cual es útil si necesitas montar múltiples imágenes de disco al mismo tiempo. Es uno de los parámetros más comúnmente ajustados para aumentar la capacidad del sistema para manejar imágenes de disco.
+
+* **max_part**
+   - Este parámetro establece el número máximo de particiones por dispositivo loop que el sistema puede manejar. Cada dispositivo loop puede contener varias particiones, y este parámetro limita cuántas de estas particiones pueden ser reconocidas y utilizadas. Esto es útil para trabajar con imágenes de disco que contienen múltiples particiones.
+
+1. Configurar Máximo de Dispositivos Loop
+
+`Pop!_OS`, que usa `systemd-boot`, la configuración del arranque se maneja de manera diferente a GRUB. Para establecer el número máximo de dispositivos loop, necesitas editar el archivo de configuración del `kernel`.
+
+* Abre el archivo de configuración del kernel para edición:
+
+    ```bash
+    sudo nano /etc/kernelstub/configuration
+    ```
+
+* Añadimos la opcion `max_loop=12` en este segmento:
+
+  ```bash
+  "kernel_options": [
+    "quiet",
+    "splash",
+    "max_loop=12"
+  ],
+  ```
+
+2. Actualizar la Configuración de systemd-boot
+
+Tras modificar la configuración del kernel, debes actualizar systemd-boot para aplicar los cambios:
+
+```bash
+sudo kernelstub -v -u
+```
+
+3. Reiniciar la maquina y Verificar
+
+4. Después del reinicio, verifica la configuración con:
+
+```bash
+cat /sys/module/loop/parameters/max_part
+```
+
+Si muestra `12`, tu configuración ha sido exitosa y tu sistema ahora soporta hasta 12 dispositivos loop.
+
+# Ejercicios de modificación de parámetros del kérnel
+
+Voy a explicarte paso a paso cómo realizar cada uno de estos ejercicios en Pop!_OS, manteniendo tu estilo claro y técnico:
+
+### 1. Deshabilitar AppArmor en el Arranque
+
+AppArmor es un módulo de seguridad del kernel que proporciona un conjunto de perfiles para controlar el acceso de los programas a los recursos del sistema. Para deshabilitarlo:
+
+1. **Editar Configuración del Kernel**:
+   Abre el archivo de configuración del kernel con un editor de texto. Por ejemplo:
+   ```bash
+   sudo nano /etc/kernelstub/configuration
+   ```
+2. **Añadir el Parámetro de Arranque**:
+   En la sección `"kernel_options"`, añade `"apparmor=0"`. Esto desactivará AppArmor.
+3. **Actualizar y Reiniciar**:
+   Actualiza la configuración con `sudo kernelstub -u` y reinicia el sistema.
+
+:::info AppArmor
+AppArmor es una herramienta de seguridad integrada en sistemas Linux que utiliza perfiles para controlar el acceso de las aplicaciones a los recursos del sistema. Estos perfiles definen restricciones específicas, limitando lo que una aplicación puede hacer y a qué puede acceder.
+
+- **Funcionamiento**: Basado en perfiles de seguridad que restringen las capacidades de las aplicaciones. Operan en modos de cumplimiento (bloquean acciones no permitidas) o de queja (registran acciones no permitidas sin bloquearlas).
+- **Beneficios**: Proporciona una capa adicional de seguridad, previniendo daños por software malicioso y minimizando riesgos de vulnerabilidades.
+- **Administración**: Los administradores pueden crear y editar perfiles fácilmente, adaptándolos a las necesidades de su entorno.
+- **Herramientas de Gestión**: Incluye herramientas para gestionar y diagnosticar el comportamiento de los perfiles.
+:::
+
+### 2. Deshabilitar Kernel Mode Setting (KMS) de la Tarjeta Gráfica
+
+Kernel Mode Setting controla aspectos de las tarjetas gráficas y monitores. Para deshabilitarlo:
+
+1. **Editar Configuración del Kernel**:
+   Como antes, edita `/etc/kernelstub/configuration`.
+2. **Añadir el Parámetro de Arranque**:
+   Agrega `"nomodeset"` en `"kernel_options"`.
+3. **Actualizar y Reiniciar**:
+   Aplica los cambios y reinicia.
+
+### 3. Cambiar la Swappiness Temporalmente
+
+La "swappiness" controla la preferencia del kernel por usar espacio de intercambio (swap) sobre la RAM.
+
+1. **Cambiar Swappiness**:
+   Usa el siguiente comando para cambiarla temporalmente:
+   ```bash
+   sudo sysctl vm.swappiness=10
+   ```
+   Esto establece la swappiness a 10, lo que significa que la swap se usará más activamente cuando se use más del 90% de la RAM.
+
+### 4. Hacer Permanente el Cambio de Swappiness
+
+Para hacer este cambio permanente:
+
+1. **Editar el Archivo sysctl**:
+   Abre `/etc/sysctl.conf`:
+   ```bash
+   sudo nano /etc/sysctl.conf
+   ```
+2. **Añadir la Configuración de Swappiness**:
+   Agrega `vm.swappiness=10` al final del archivo.
+3. **Guardar y Cerrar**:
+   Guarda el archivo y cierra el editor.
+
+### 5. Mostrar el Valor del Bit de Forward para IPv6
+
+Para verificar el estado actual del forwarding IPv6:
+
+1. **Verificar el Estado**:
+   Ejecuta:
+   ```bash
+   sysctl net.ipv6.conf.all.forwarding
+   ```
+   Esto mostrará si el forwarding IPv6 está habilitado (`1`) o deshabilitado (`0`).
+
+### 6. Deshabilitar y Habilitar Magic SysRq
+
+Magic SysRq es una funcionalidad que permite realizar acciones de bajo nivel directamente al kernel.
+
+1. **Deshabilitar Magic SysRq**:
+   En `/etc/sysctl.conf`, añade o modifica la línea:
+   ```plaintext
+   kernel.sysrq=0
+   ```
+   Esto deshabilita Magic SysRq.
+2. **Habilitar Magic SysRq Después de Reiniciar**:
+   Cambia el valor a `1` para habilitarlo de nuevo:
+   ```plaintext
+   kernel.sysrq=1
+   ```
+3. **Aplicar Cambios**:
+   Después de cada modificación, ejecuta `sudo sysctl -p` o reinicia.
+
+
+:::tip Magic SysRq
+Magic SysRq es una funcionalidad del kernel de Linux que proporciona un método directo de comunicación con el kernel, permitiendo ejecutar comandos de bajo nivel independientemente del estado del sistema. Es una herramienta valiosa para situaciones de recuperación del sistema y diagnóstico.
+
+- **Funcionamiento**: Al presionar una combinación específica de teclas (usualmente Alt+SysRq seguido de otra tecla), se envía una instrucción directamente al kernel. Estas instrucciones pueden realizar acciones como reiniciar el sistema, matar procesos problemáticos o desmontar sistemas de archivos de forma segura.
+- **Beneficios**: Magic SysRq es especialmente útil en situaciones donde el sistema se ha vuelto irresponsive. Permite a los administradores tomar medidas inmediatas para recuperar o proteger el sistema.
+- **Habilitación y Uso**: Se puede habilitar o deshabilitar mediante parámetros del kernel. La funcionalidad está sujeta a restricciones para evitar su uso indebido.
+- **Comandos Comunes**: Incluyen reiniciar el sistema (B), matar todos los procesos excepto el proceso de inicio (I), y desmontar sistemas de archivos de forma segura (U).
+:::
+
