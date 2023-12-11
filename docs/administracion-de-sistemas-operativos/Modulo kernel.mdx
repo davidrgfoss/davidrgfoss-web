@@ -202,9 +202,9 @@ El comando `ls /sys/module/loop/parameters` lista los parámetros configurables 
 
 1. Configurar Máximo de Dispositivos Loop
 
-`Pop!_OS`, que usa `systemd-boot`, la configuración del arranque se maneja de manera diferente a GRUB. Para establecer el número máximo de dispositivos loop, necesitas editar el archivo de configuración del `kernel`.
+`Pop!_OS`, que usa `systemd-boot`, la configuración del arranque se maneja de manera diferente a GRUB. Para establecer el número máximo de dispositivos loop, hay que editar el archivo de configuración del `kernel`.
 
-* Abre el archivo de configuración del kernel para edición:
+* Modifica el archivo de configuración del kernel:
 
     ```bash
     sudo nano /etc/kernelstub/configuration
@@ -222,8 +222,6 @@ El comando `ls /sys/module/loop/parameters` lista los parámetros configurables 
 
 2. Actualizar la Configuración de systemd-boot
 
-Tras modificar la configuración del kernel, debes actualizar systemd-boot para aplicar los cambios:
-
 ```bash
 sudo kernelstub -v -u
 ```
@@ -239,8 +237,6 @@ cat /sys/module/loop/parameters/max_part
 Si muestra `12`, tu configuración ha sido exitosa y tu sistema ahora soporta hasta 12 dispositivos loop.
 
 # Ejercicios de modificación de parámetros del kérnel
-
-Voy a explicarte paso a paso cómo realizar cada uno de estos ejercicios en Pop!_OS, manteniendo tu estilo claro y técnico:
 
 ### 1. Deshabilitar AppArmor en el Arranque
 
@@ -332,11 +328,11 @@ Magic SysRq es una funcionalidad que permite realizar acciones de bajo nivel dir
 
 
 :::tip Magic SysRq
-Magic SysRq es una funcionalidad del kernel de Linux que proporciona un método directo de comunicación con el kernel, permitiendo ejecutar comandos de bajo nivel independientemente del estado del sistema. Es una herramienta valiosa para situaciones de recuperación del sistema y diagnóstico.
+Magic SysRq es una funcionalidad del kernel de Linux que proporciona un método directo de comunicación con el kernel, permitiendo ejecutar comandos de bajo nivel independientemente del estado del sistema. Es una herramienta importante para situaciones de recuperación del sistema y diagnóstico.
 
 - **Funcionamiento**: Al presionar una combinación específica de teclas (usualmente Alt+SysRq seguido de otra tecla), se envía una instrucción directamente al kernel. Estas instrucciones pueden realizar acciones como reiniciar el sistema, matar procesos problemáticos o desmontar sistemas de archivos de forma segura.
 - **Beneficios**: Magic SysRq es especialmente útil en situaciones donde el sistema se ha vuelto irresponsive. Permite a los administradores tomar medidas inmediatas para recuperar o proteger el sistema.
 - **Habilitación y Uso**: Se puede habilitar o deshabilitar mediante parámetros del kernel. La funcionalidad está sujeta a restricciones para evitar su uso indebido.
-- **Comandos Comunes**: Incluyen reiniciar el sistema (B), matar todos los procesos excepto el proceso de inicio (I), y desmontar sistemas de archivos de forma segura (U).
+- **Comandos Comunes**: Incluyen reiniciar el sistema (B), cerrar todos los procesos excepto el proceso de inicio (I), y desmontar sistemas de archivos de forma segura (U).
 :::
 
