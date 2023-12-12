@@ -121,44 +121,44 @@ La carga de un módulo a menudo depende de otros módulos. Por ejemplo, un contr
 ## 4. Elimina el módulo correspondiente a algún dispotivo no esencial y comprueba qué ocurre. Vuelve a cargarlo
 
 1. Eliminar el Módulo
-```bash
-sudo rmmod lp
-```
+   ```bash
+   sudo rmmod lp
+   ```
 
-Este comando removerá el módulo `lp` del kernel. Es esencial usar `sudo` para obtener permisos de administrador, ya que la manipulación de módulos del kernel requiere privilegios elevados.
+   Este comando removerá el módulo `lp` del kernel. Es esencial usar `sudo` para obtener permisos de administrador, ya que la manipulación de módulos del kernel requiere privilegios elevados.
 
 2. Verificar la Eliminación
-```bash
-lsmod | grep lp
-```
+   ```bash
+   lsmod | grep lp
+   ```
 
-Si el comando no devuelve ninguna salida, significa que el módulo ha sido eliminado correctamente.
+   Si el comando no devuelve ninguna salida, significa que el módulo ha sido eliminado correctamente.
 
 3. Observar los Efectos
 
-Una vez eliminado el módulo, observa el comportamiento del sistema. En este caso, como `lp` está relacionado con las impresoras paralelas, no deberías notar ningún cambio inmediato, a menos que estés utilizando una impresora de este tipo.
+   Una vez eliminado el módulo, observa el comportamiento del sistema. En este caso, como `lp` está relacionado con las impresoras paralelas, no deberías notar ningún cambio inmediato, a menos que estés utilizando una impresora de este tipo.
 
 4. Añadir de nuevo el Módulo
 
-```bash
-sudo modprobe lp
-```
+   ```bash
+   sudo modprobe lp
+   ```
 
-Este comando no solo carga el módulo `lp`, sino que también gestiona automáticamente las dependencias del módulo.
+   Este comando no solo carga el módulo `lp`, sino que también gestiona automáticamente las dependencias del módulo.
 
 5. Verificar que el modulo esta cargado
-```bash
-lsmod | grep lp
-```
+   ```bash
+   lsmod | grep lp
+   ```
 
-Si el módulo se muestra en la salida, entonces ha sido recargado con éxito.
+   Si el módulo se muestra en la salida, entonces ha sido recargado con éxito.
 
 
 ## 5. Selecciona un módulo que esté en uso en tu equipo y configura el arranque para que no se cargue automáticamente
 
 1. Configurar el Sistema para no Cargar el Módulo
 
-Para prevenir la carga automática de un módulo en el arranque, debes agregarlo a la lista negra del sistema. Esto se hace editando o creando un archivo en `/etc/modprobe.d/`. Por ejemplo, puedes crear un archivo llamado `blacklist.conf` (si no existe) y añadir el módulo a la lista negra:
+   Para prevenir la carga automática de un módulo en el arranque, debes agregarlo a la lista negra del sistema. Esto se hace editando o creando un archivo en `/etc/modprobe.d/`. Por ejemplo, puedes crear un archivo llamado `blacklist.conf` (si no existe) y añadir el módulo a la lista negra:
 
 * Abre el archivo con un editor de texto, como `nano`:
 
@@ -174,20 +174,20 @@ Para prevenir la carga automática de un módulo en el arranque, debes agregarlo
 
 2. Reiniciar el Sistema
 
-```bash
-sudo reboot
-```
+   ```bash
+   sudo reboot
+   ```
 
 3. Verificar la Configuración
 
-```bash
-lsmod | grep btusb
-```
+   ```bash
+   lsmod | grep btusb
+   ```
 
-Si no aparece en la lista, significa que se ha configurado correctamente y no se carga en el arranque.
+   Si no aparece en la lista, significa que se ha configurado correctamente y no se carga en el arranque.
 
 
-## 5. Carga el módulo loop, obtén información de qué es y para qué sirve. Lista el contenido de /sys/modules/loop/parameters y configura el equipo para que se puedan cargar como máximo 12 dispositvos loop la próxima vez que se arranque.
+## 6. Carga el módulo loop, obtén información de qué es y para qué sirve. Lista el contenido de /sys/modules/loop/parameters y configura el equipo para que se puedan cargar como máximo 12 dispositvos loop la próxima vez que se arranque.
 
 El comando `ls /sys/module/loop/parameters` lista los parámetros configurables para el módulo `loop` en el sistema Linux.
 
@@ -202,7 +202,7 @@ El comando `ls /sys/module/loop/parameters` lista los parámetros configurables 
 
 1. Configurar Máximo de Dispositivos Loop
 
-`Pop!_OS`, que usa `systemd-boot`, la configuración del arranque se maneja de manera diferente a GRUB. Para establecer el número máximo de dispositivos loop, hay que editar el archivo de configuración del `kernel`.
+   `Pop!_OS`, que usa `systemd-boot`, la configuración del arranque se maneja de manera diferente a GRUB. Para establecer el número máximo de dispositivos loop, hay que editar el archivo de configuración del `kernel`.
 
 * Modifica el archivo de configuración del kernel:
 
@@ -222,23 +222,23 @@ El comando `ls /sys/module/loop/parameters` lista los parámetros configurables 
 
 2. Actualizar la Configuración de systemd-boot
 
-```bash
-sudo kernelstub -v -u
-```
+   ```bash
+   sudo kernelstub -v -u
+   ```
 
 3. Reiniciar la maquina y Verificar
 
 4. Después del reinicio, verifica la configuración con:
 
-```bash
-cat /sys/module/loop/parameters/max_part
-```
+   ```bash
+   cat /sys/module/loop/parameters/max_part
+   ```
 
-Si muestra `12`, tu configuración ha sido exitosa y tu sistema ahora soporta hasta 12 dispositivos loop.
+   Si muestra `12`, tu configuración ha sido exitosa y tu sistema ahora soporta hasta 12 dispositivos loop.
 
 # Ejercicios de modificación de parámetros del kérnel
 
-### 1. Deshabilitar AppArmor en el Arranque
+## 1. Deshabilitar AppArmor en el Arranque
 
 AppArmor es un módulo de seguridad del kernel que proporciona un conjunto de perfiles para controlar el acceso de los programas a los recursos del sistema. Para deshabilitarlo:
 
@@ -252,16 +252,16 @@ AppArmor es un módulo de seguridad del kernel que proporciona un conjunto de pe
 3. **Actualizar y Reiniciar**:
    Actualiza la configuración con `sudo kernelstub -u` y reinicia el sistema.
 
-:::info AppArmor
-AppArmor es una herramienta de seguridad integrada en sistemas Linux que utiliza perfiles para controlar el acceso de las aplicaciones a los recursos del sistema. Estos perfiles definen restricciones específicas, limitando lo que una aplicación puede hacer y a qué puede acceder.
+   :::info AppArmor
+   AppArmor es una herramienta de seguridad integrada en sistemas Linux que utiliza perfiles para controlar el acceso de las aplicaciones a los recursos del sistema. Estos perfiles definen restricciones específicas, limitando lo que una aplicación puede hacer y a qué puede acceder.
 
-- **Funcionamiento**: Basado en perfiles de seguridad que restringen las capacidades de las aplicaciones. Operan en modos de cumplimiento (bloquean acciones no permitidas) o de queja (registran acciones no permitidas sin bloquearlas).
-- **Beneficios**: Proporciona una capa adicional de seguridad, previniendo daños por software malicioso y minimizando riesgos de vulnerabilidades.
-- **Administración**: Los administradores pueden crear y editar perfiles fácilmente, adaptándolos a las necesidades de su entorno.
-- **Herramientas de Gestión**: Incluye herramientas para gestionar y diagnosticar el comportamiento de los perfiles.
-:::
+   - **Funcionamiento**: Basado en perfiles de seguridad que restringen las capacidades de las aplicaciones. Operan en modos de cumplimiento (bloquean acciones no permitidas) o de queja (registran acciones no permitidas sin bloquearlas).
+   - **Beneficios**: Proporciona una capa adicional de seguridad, previniendo daños por software malicioso y minimizando riesgos de vulnerabilidades.
+   - **Administración**: Los administradores pueden crear y editar perfiles fácilmente, adaptándolos a las necesidades de su entorno.
+   - **Herramientas de Gestión**: Incluye herramientas para gestionar y diagnosticar el comportamiento de los perfiles.
+   :::
 
-### 2. Deshabilitar Kernel Mode Setting (KMS) de la Tarjeta Gráfica
+## 2. Deshabilitar Kernel Mode Setting (KMS) de la Tarjeta Gráfica
 
 Kernel Mode Setting controla aspectos de las tarjetas gráficas y monitores. Para deshabilitarlo:
 
@@ -272,7 +272,7 @@ Kernel Mode Setting controla aspectos de las tarjetas gráficas y monitores. Par
 3. **Actualizar y Reiniciar**:
    Aplica los cambios y reinicia.
 
-### 3. Cambiar la Swappiness Temporalmente
+## 3. Cambiar la Swappiness Temporalmente
 
 La "swappiness" controla la preferencia del kernel por usar espacio de intercambio (swap) sobre la RAM.
 
@@ -283,7 +283,7 @@ La "swappiness" controla la preferencia del kernel por usar espacio de intercamb
    ```
    Esto establece la swappiness a 10, lo que significa que la swap se usará más activamente cuando se use más del 90% de la RAM.
 
-### 4. Hacer Permanente el Cambio de Swappiness
+## 4. Hacer Permanente el Cambio de Swappiness
 
 Para hacer este cambio permanente:
 
@@ -297,7 +297,7 @@ Para hacer este cambio permanente:
 3. **Guardar y Cerrar**:
    Guarda el archivo y cierra el editor.
 
-### 5. Mostrar el Valor del Bit de Forward para IPv6
+## 5. Mostrar el Valor del Bit de Forward para IPv6
 
 Para verificar el estado actual del forwarding IPv6:
 
@@ -308,7 +308,7 @@ Para verificar el estado actual del forwarding IPv6:
    ```
    Esto mostrará si el forwarding IPv6 está habilitado (`1`) o deshabilitado (`0`).
 
-### 6. Deshabilitar y Habilitar Magic SysRq
+## 6. Deshabilitar y Habilitar Magic SysRq
 
 Magic SysRq es una funcionalidad que permite realizar acciones de bajo nivel directamente al kernel.
 
@@ -326,13 +326,12 @@ Magic SysRq es una funcionalidad que permite realizar acciones de bajo nivel dir
 3. **Aplicar Cambios**:
    Después de cada modificación, ejecuta `sudo sysctl -p` o reinicia.
 
+   :::tip Magic SysRq
+   Magic SysRq es una funcionalidad del kernel de Linux que proporciona un método directo de comunicación con el kernel, permitiendo ejecutar comandos de bajo nivel independientemente del estado del sistema. Es una herramienta importante para situaciones de recuperación del sistema y diagnóstico.
 
-:::tip Magic SysRq
-Magic SysRq es una funcionalidad del kernel de Linux que proporciona un método directo de comunicación con el kernel, permitiendo ejecutar comandos de bajo nivel independientemente del estado del sistema. Es una herramienta importante para situaciones de recuperación del sistema y diagnóstico.
-
-- **Funcionamiento**: Al presionar una combinación específica de teclas (usualmente Alt+SysRq seguido de otra tecla), se envía una instrucción directamente al kernel. Estas instrucciones pueden realizar acciones como reiniciar el sistema, matar procesos problemáticos o desmontar sistemas de archivos de forma segura.
-- **Beneficios**: Magic SysRq es especialmente útil en situaciones donde el sistema se ha vuelto irresponsive. Permite a los administradores tomar medidas inmediatas para recuperar o proteger el sistema.
-- **Habilitación y Uso**: Se puede habilitar o deshabilitar mediante parámetros del kernel. La funcionalidad está sujeta a restricciones para evitar su uso indebido.
-- **Comandos Comunes**: Incluyen reiniciar el sistema (B), cerrar todos los procesos excepto el proceso de inicio (I), y desmontar sistemas de archivos de forma segura (U).
-:::
+   - **Funcionamiento**: Al presionar una combinación específica de teclas (usualmente Alt+SysRq seguido de otra tecla), se envía una instrucción directamente al kernel. Estas instrucciones pueden realizar acciones como reiniciar el sistema, matar procesos problemáticos o desmontar sistemas de archivos de forma segura.
+   - **Beneficios**: Magic SysRq es especialmente útil en situaciones donde el sistema se ha vuelto irresponsive. Permite a los administradores tomar medidas inmediatas para recuperar o proteger el sistema.
+   - **Habilitación y Uso**: Se puede habilitar o deshabilitar mediante parámetros del kernel. La funcionalidad está sujeta a restricciones para evitar su uso indebido.
+   - **Comandos Comunes**: Incluyen reiniciar el sistema (B), cerrar todos los procesos excepto el proceso de inicio (I), y desmontar sistemas de archivos de forma segura (U).
+   :::
 
