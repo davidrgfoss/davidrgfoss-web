@@ -47,7 +47,7 @@ En las últimas versiones de la distribución *Debian* las tarjetas de red será
 > GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"
 
 * Ejecutamos el siguiente comando:
-```jsx
+```bash
 sudo grub-mkconfig -o /boot/grub/grub.cfg
 ```
 
@@ -59,7 +59,7 @@ Nuestro servidor cuenta con dos interfaces de red y tiene que ser configurado de
 En esta configuración, se especificará que la tarjeta de red en modo puente (eth0) estará configurada por el servicio *DHCP* disponible en la red. La interfaz de red que tenemos configurada como "red interna" tendrá una configuración estática, y por último añadiremos una opción al fichero para permitir el protocolo *NAT* entre las dos interfaces.
 
 * Configuración del fichero "/etc/network/interfaces"
-```jsx
+```bash
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -91,7 +91,7 @@ A continuación dejaré la línea que debemos descomentar en el fichero, en caso
 > net.ipv4.ip_forward=1
 
 * Comando para reiniciar el servicio de red:
-```jsx
+```bash
 systemctl restart networking
 ```
 

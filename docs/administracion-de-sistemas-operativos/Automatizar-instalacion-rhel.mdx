@@ -97,7 +97,7 @@ Para realizar este proceso, primero deberemos montar nuestra imagen ISO en nuest
 
 * Montar “ISO” y hacer una copia de todos los ficheros:
  ```bash
- mount -o loop rhel-baseos-9.0-x86_64-dvd.iso /mnt
+ mount -o loop rhel-baseos-9.3-x86_64-dvd.iso /mnt
  mkdir /tmp/rhel9 && cp -avRf /mnt/* /tmp/rhel9 && cd /tmp/rhel9
  ```
 :::danger Evitando posible error
@@ -107,12 +107,12 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
 * Editamos el fichero de arranque de “isolinux/isolinux.cfg” y eliminamos las siguientes líneas:
  ```bash
  label linux
-  menu label ^Install Red Hat Enterprise Linux 9.0
+  menu label ^Install Red Hat Enterprise Linux 9.3
   kernel vmlinuz
   append initrd=initrd.img inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 quiet
 
  label check
-  menu label Test this ^media & install Red Hat Enterprise Linux 9.0
+  menu label Test this ^media & install Red Hat Enterprise Linux 9.3
   menu default
   kernel vmlinuz
   append initrd=initrd.img inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 rd.live.check quiet
@@ -123,24 +123,24 @@ Cuando copiamos el directorio debemos asegurarnos que se copian los ficheros ocu
   menu label ^Automate Install RHEL9
   menu default
   kernel vmlinuz
-  append initrd=initrd.img inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 inst.ks=cdrom:/ks.cfg
+  append initrd=initrd.img inst.stage2=hd:LABEL=RHEL-9-3-0-BaseOS-x86_64 inst.ks=cdrom:/ks.cfg
 
  ```
 * Modificamos el fichero ***“EFI/BOOT/grub.cfg”*** cambiando el parámetro **“set default”** de la primera línea a 0 y eliminando las siguientes líneas:
  ```bash
  menuentry 'Install Red Hat Enterprise Linux 9.0' --class fedora --class gnu-linux --class gnu --class os {
-	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 quiet
+	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-3-0-BaseOS-x86_64 quiet
 	initrdefi /images/pxeboot/initrd.img
 }
- menuentry 'Test this media & install Red Hat Enterprise Linux 9.0' --class fedora --class gnu-linux --class gnu --class os {
-	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 rd.live.check quiet
+ menuentry 'Test this media & install Red Hat Enterprise Linux 9.3' --class fedora --class gnu-linux --class gnu --class os {
+	linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-3-0-BaseOS-x86_64 rd.live.check quiet
 	initrdefi /images/pxeboot/initrd.img
 }
  ```
 * Luego en el mismo sitio, escribimos las siguientes líneas:
  ```bash
  menuentry 'Install Automate RHEL9' --class fedora --class gnu-linux --class gnu --class os {
-    linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-0-0-BaseOS-x86_64 inst.ks=cdrom:/ks.cfg
+    linuxefi /images/pxeboot/vmlinuz inst.stage2=hd:LABEL=RHEL-9-3-0-BaseOS-x86_64 inst.ks=cdrom:/ks.cfg
     initrdefi /images/pxeboot/initrd.img
 }
  ```
@@ -148,7 +148,7 @@ Con lo anterior habremos creado la configuración necesaria para que el instalad
 
 * Copiamos el fichero “ks.cfg” dentro del directorio “/tmp/rhel9” y generamos la “ISO” a partir de este directorio con el siguiente comando:
  ```bash
- mkisofs -o /tmp/rhel9A.iso -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "RHEL-9-0-0-BaseOS-x86_64" .
+ mkisofs -o /tmp/rhel9A.iso -b isolinux/isolinux.bin -J -R -l -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e images/efiboot.img -no-emul-boot -graft-points -V "RHEL-9-3-0-BaseOS-x86_64" .
  ```
 :::danger Precaupción
 Este último comando debemos asegurarnos que no nos hemos saltado nada, incluido el punto que tiene al final el cual forma parte de la ejecución.
