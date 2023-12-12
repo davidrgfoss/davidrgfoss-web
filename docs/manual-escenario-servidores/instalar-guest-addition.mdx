@@ -10,7 +10,7 @@ Vamos a partir de la base que supone tener una máquina virtual con la distribuc
 
 Primero introduciremos el CD de la "_Guest Additions_" desde la barra superior en la ventana de la máquina virtual. Se hace clic en "_Dispositivos > Insertar imagen de CD de las "Guest Additions_"...". Una vez introducida la imagen del CD, entraremos como el usuario "_root_" para poder tener permisos de administrador e introduciremos los siguientes comandos:
 
-```jsx
+```bash
 apt update && apt install linux-headers-amd64 make gcc perl -y
 mount /dev/sr0 /media/cdrom0
 mount -o remount,ro,exec /dev/sr0
@@ -22,7 +22,7 @@ reboot
 Una vez hayamos introducido los comandos, reiniciamos la máquina y ya tendríamos instaladas y configuradas las "_Guest Additions_".
 Podremos comprobar los módulos añadidos a nuestro sistema con el siguiente comando:
 
-```jsx
+```bash
 lsmod | grep "vbox"
 ```
 

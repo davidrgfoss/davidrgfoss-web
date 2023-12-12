@@ -28,12 +28,12 @@ En mi caso he escogido la alternativa de AlmaLinux por las siguientes razones:
 Dejare por escrito los comandos usados asi como un video del proceso completo.
 
 * Primero actualizamos nuestro sistema:
-```jsx
+```bash
 sudo dnf update -y
 ```
 
 * Ahora descargamos el script de migración y lo ejecutamos:
-```jsx
+```bash
 curl -O https://raw.githubusercontent.com/AlmaLinux/almalinux-deploy/master/almalinux-deploy.sh
 sudo bash almalinux-deploy.sh
 ```
@@ -47,19 +47,19 @@ sudo bash almalinux-deploy.sh
 
 Es un proceso algo mas complejo que la migración pero sigue siendo bastante sencillo, primero debemos preparar el sistema operativo para el proceso desactivando dos cosas que nos impedira dicha actualización, debemos de asegurarnos que “selinux” estara desactivado asi como el “ZoneDrifting” de nuestro cortafuegos, esto se hara configurando el valor “disabled” y el valor “no” respectivamente para cada opción.
 
-```jsx title="Desactivar selinux en el fichero /etc/sysconfig/selinux"
+```bash title="Desactivar selinux en el fichero /etc/sysconfig/selinux"
 # Modificamos el siguiente parametro para desactivar selinux
 SELINUX=disabled
 ```
 
-```jsx title="Desactivar ZoneDrifting en el fichero /etc/firewalld/firewalld.conf"
+```bash title="Desactivar ZoneDrifting en el fichero /etc/firewalld/firewalld.conf"
 # Modificamos el siguiente parametro para desactivar ZoneDrifting
 AllowZoneDrifting=no
 reboot
 ```
 * Ahora añadimos el repositorio que contiene el script que nos permitira automatizar el upgrade de versión:
 
-```jsx title="Añadir repositorio de actualización"
+```bash title="Añadir repositorio de actualización"
 curl https://repo.almalinux.org/elevate/testing/elevate-testing.repo -o /etc/yum.repos.d/elevate-testing.repo
 rpm --import https://repo.almalinux.org/elevate/RPM-GPG-KEY-ELevate
 dnf update
@@ -71,7 +71,7 @@ Esta entrada no es más que una imagen de arranque creada para poder modificar e
 
 A continuación ejecutamos esto comandos para realizar el “upgrade”:
 
-```jsx title="Ejecutar proceso de actualización"
+```bash title="Ejecutar proceso de actualización"
 leapp preupgrade
 leapp upgrade
 reboot

@@ -52,7 +52,7 @@ Una vez leído lo anterior, continuamos entendiendo primero que contiene el fich
 
 El núcleo de forma predeterminada contiene muchas opciones habilitada por defecto y otras mucha no habilitadas, esto lo encontraremos escrito de la siguiente forma.
 
-```jsx title="Esquema del contenido que hay en el fichero .config"
+```bash title="Esquema del contenido que hay en el fichero .config"
 # Modulo_WIFI is not set
 Modulo_WIFI=y
 Modulo_WIFI=m
@@ -92,7 +92,7 @@ Estas opciones siempre deben usarse en el mismo directorio y con el prefijo **�
 :::
 
 Una vez generado el fichero **“.config”** usando una de las opciones anteriores podemos configurar el fichero para añadir o quitar lo que necesitemos con el comando:
-```jsx
+```bash
 make menuconfig
 ```
 Puedo dejar algunos consejos sobre módulos importantes que podemos activar, aunque esto solo son menciones a unos módulos importantes, harán falta activar bastantes más para un funcionamiento correcto.

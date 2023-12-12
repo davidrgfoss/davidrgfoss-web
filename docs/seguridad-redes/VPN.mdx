@@ -28,11 +28,11 @@ La idea de esta configuración será que la primera maquina pueda acceder a la r
 
 En esta maquina instalaremos el servidor de OpenVPN, para ello usaremos el siguiente comando:
 
-```jsx
+```bash
 sudo apt install openvpn easy-rsa
 ```
 Vamos a crear un directorio para almacenar los certificados y claves que se generen. Estos comandos crearan un directorio con un script para automatizar la creación de una autoridad certificadora, claves... Para ello ejecutaremos los siguientes comandos:
-```jsx
+```bash
 make-cadir /root/easy-rsa
 cd /root/easy-rsa
 ./easyrsa init-pki
@@ -43,13 +43,13 @@ Si ya hemos creado una autoridad certificadora y claves anteriormente, podemos b
 :::
 
 Ahora vamos a crear una autoridad certificadora y generar el fichero Diffie-Hellman, para ello ejecutaremos el siguiente comando:
-```jsx
+```bash
 ./easyrsa build-ca
 ./easyrsa gen-dh
 ```
 
 Ahora vamos a crear un certificado para el servidor, para ello ejecutaremos el siguiente comando:
-```jsx
+```bash
 ./easyrsa build-server-full server nopass
 ```
 :::info Ampliación sobre el comando anterior
@@ -57,7 +57,7 @@ El comando anterior creará un certificado para el servidor, el nombre del certi
 :::
 
 Ahora vamos a crear un certificado para el cliente, esto generará dos ficheros que serán los que use el cliente, para ello ejecutaremos el siguiente comando:
-```jsx
+```bash
 ./easyrsa build-client-full clienteremote nopass
 ```
 :::info ¿Podemos generar varios certificados para varios clientes?
@@ -65,7 +65,7 @@ Si, podemos generar varios certificados para varios clientes. Es importante guar
 :::
 
 Generamos el fichero ta.key para proporcionar autenticación HMAC y encriptación para el control de paquetes del canal TLS. Para generar el fichero ejecutaremos el siguiente comando:
-```jsx
+```bash
 openvpn --genkey secret ta.key
 ```
 
@@ -77,7 +77,7 @@ Ahora necesitaremos copiar los siguientes ficheros al directorio /etc/openvpn/se
  * /root/easy-rsa/pki/ta.key
 
 Ahora configuraremos el servidor OpenVPN, para ello crearemos un fichero de configuración en el directorio /etc/openvpn, para ello ejecutaremos el siguiente comando:
-```jsx title="/etc/openvpn/server.conf"
+```bash title="/etc/openvpn/server.conf"
 port 1194
 proto udp
 dev tun
@@ -104,12 +104,12 @@ explicit-exit-notify 1
 
 Con esto ya tendríamos configurado el servidor openvpn, ahora necesitamos configurar una regla nat para que las conexiones puedan salir a internet.
 También es necesario activar el "ip forwarding" para que las conexiones puedan salir a internet, esto lo hacemos descomentando o añadiendo la siguiente línea en el fichero /etc/sysctl.conf:
-```jsx
+```bash
 net.ipv4.ip_forward=1
 ```
 
 Dejare también mi configuración de red, aunque esto depende del escenario que se monte.
-```jsx title="/etc/network/interfaces"
+```bash title="/etc/network/interfaces"
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -136,12 +136,12 @@ iface eth2 inet static
 ```
 
 Ahora reiniciamos el servicio de red y sysctl para que se apliquen los cambios:
-```jsx
+```bash
 systemctl restart networking
 sysctl -p
 ```
 Iniciamos el servicio vpn o habilitamos para el inicio según queramos:
-```jsx
+```bash
 systemctl start openvpn@server
 ```
 ### Explicación del fichero server.conf
@@ -172,7 +172,7 @@ Ahora explicare cada parámetro usado, en los futuros escenarios no explicare lo
 ### Configuración de la maquina 1
 
 En esta máquina deberemos hacer algunos ajustes, aunque antes dejaré la configuración de red usada en el fichero /etc/network/interfaces:
-```jsx title="/etc/network/interfaces"
+```bash title="/etc/network/interfaces"
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -191,7 +191,7 @@ iface eth0 inet static
 ```
 
 Ahora configuraremos la maquina 1, para ello necesitaremos instalar openvpn en la maquina 1, para ello ejecutamos:
-```jsx
+```bash
 apt install openvpn
 ```
 Copiaremos los siguientes ficheros de configuración generados con easy-rsa en la maquina 2 en el directorio /etc/openvpn/client de la maquina 1:
@@ -202,7 +202,7 @@ Copiaremos los siguientes ficheros de configuración generados con easy-rsa en l
  * /root/easy-rsa/pki/ta.key
  
 Ahora configuramos openvpn como cliente, para ello creamos el fichero /etc/openvpn/client/cliente.conf con el siguiente contenido:
-```jsx
+```bash
 client
 dev tun
 proto udp
@@ -222,7 +222,7 @@ verb 3
 ```
 
 Ahora iniciamos el servicio de openvpn o lo habilitamos para el inicio:
-```jsx
+```bash
 systemctl start openvpn@cliente
 ```
 
@@ -250,7 +250,7 @@ Aqui tenemos cada parámetro usado explicado:
 ### Configuración de la maquina 2
 
 Esta máquina no requiere configuraciones pero dejare el fichero de configuración de red /etc/network/interfaces:
-```jsx title="/etc/network/interfaces"
+```bash title="/etc/network/interfaces"
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -297,7 +297,7 @@ Para realizar este escenario haremos uso de 4 maquinas diferentes, que serán la
 ### Configuración de la maquina 2(server) y 3(cliente)
 
 Antes de empezar, voy a dejar la configuración de red usado en las maquinas 2 y 3:
-```jsx title="/etc/network/interfaces de la maquina 2"
+```bash title="/etc/network/interfaces de la maquina 2"
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -319,7 +319,7 @@ iface eth1 inet static
     netmask 255.255.255.0
 ```
    
-```jsx title="/etc/network/interfaces de la maquina 3"
+```bash title="/etc/network/interfaces de la maquina 3"
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
@@ -343,7 +343,7 @@ iface eth1 inet static
 
 Para configurar este escenario vamos a requerir instalar el paquete openvpn y hacer lo mismo que hicimos en el escenario anterior. Tendremos que generar la autoridad certificadora, los certificados y las claves para el servidor y para el cliente. Para ello vamos a seguir los mismos pasos que en el escenario anterior.
 Cuando generamos los certificados es importante generar uno de tipo servidor en este caso llamado server, y otro de tipo cliente llamado cliente. Para eso usaremos estos dos comandos:
-```jsx
+```bash
 ./easyrsa build-server-full server nopass
 ./easyrsa build-client-full cliente nopass
 ```
@@ -357,7 +357,7 @@ En este caso el servidor(Maquina 2) tendrá un fichero server.conf y todos los f
 #### Configuración del servidor
 
 Para configurar el servidor vamos a crear un fichero llamado server.conf en la ruta /etc/openvpn. Este fichero tendrá el siguiente contenido:
-```jsx title="/etc/openvpn/server.conf"
+```bash title="/etc/openvpn/server.conf"
 port 1194
 proto udp
 dev tun
@@ -390,7 +390,7 @@ Aunque se han añadido algunos cambios al fichero para este escenario que explic
 * **client-config-dir /etc/openvpn/ccd**: Este parámetro es nuevo, y lo que hace es indicarle al servidor que en la ruta /etc/openvpn/ccd va a tener ficheros de configuración para cada cliente. En este caso solo tendremos un cliente, pero si tuviéramos más clientes, cada uno tendría su fichero de configuración en esa ruta. Cada archivo en este directorio debe tener el nombre de un cliente y puede contener opciones de configuración específicas para ese cliente. Este es un poderoso mecanismo de personalización que puede permitir, por ejemplo, asignar una dirección IP estática a un cliente específico o establecer rutas específicas del cliente.
 
 En el directorio anterior yo he creado un fichero llamado cliente con el siguiente contenido:
-```jsx title="/etc/openvpn/ccd/cliente"
+```bash title="/etc/openvpn/ccd/cliente"
 iroute 10.0.1.0 255.255.255.0
 ```
 Esto está indicando al servidor que si recibe tráfico hacia la red indicada lo redirigirá por la vpn hacia el cliente que tiene ese nombre. En este escenario no es útil, pero en un escenario real sí que lo sería, al tener diferentes clientes para acceder a otras redes. También permite hacer diversas configuraciones más complejas que la descrita por mí.
@@ -398,7 +398,7 @@ Esto está indicando al servidor que si recibe tráfico hacia la red indicada lo
 #### Configuración del cliente
 
 Para configurar el cliente vamos a crear un fichero llamado cliente.conf en la ruta /etc/openvpn. Este fichero tendrá el siguiente contenido:
-```jsx title="/etc/openvpn/cliente.conf"
+```bash title="/etc/openvpn/cliente.conf"
 client
 dev tun
 proto udp
@@ -423,7 +423,7 @@ Para este caso no hay nada diferente al escenario anterior, por lo que no voy a 
 
 Al igual que en el escenario anterior debemos tener configurado los servicios con **systemctl**, también tenemos que tener activado el **ip_forwarding**. Según cómo sea el escenario necesitaremos unas reglas u otras de iptable para que funcione. En mi caso he usado las siguientes reglas para ambas máquinas:
 
-```jsx title="Reglas iptables"
+```bash title="Reglas iptables"
 iptables -A INPUT -i tun+ -j ACCEPT
 iptables -A FORWARD -i tun+ -j ACCEPT
 iptables -A INPUT -i tap+ -j ACCEPT
@@ -437,13 +437,13 @@ Estas máquinas no requieren ninguna configuración especial o de openvpn. Solo 
 Para hacer la prueba podemos configurar una "**default via**" que nos permita hacer una comprobación rápida aunque perderemos el acceso a internet, esto solo es útil para un momento. Lo haremos de la siguiente forma.
 
 * **Máquina 1**
-```jsx
+```bash
 ip r del default
 ip r add default via 10.0.0.1
 ```
 
 * **Máquina 4**
-```jsx
+```bash
 ip r del default
 ip r add default via 10.0.1.1
 ```
@@ -496,19 +496,19 @@ La configuración de las máquinas será la siguiente:
 
 En el caso de esta herramienta al no funcionar por autoridad certificadora, y solo hacer uso de claves publicas y privadas para su seguridad, da lo mismo si generamos estas claves en una máquina u otra. Lo primero es instalar los paquetes necesarios en la máquina servidor y clientes.
 
-```jsx title="Instalación de WireGuard"
+```bash title="Instalación de WireGuard"
 apt install wireguard wireguard-tools qrencode
 ```
 
 Una vez instalado el paquete en el servidor debemos generar las claves publicas y privadas para el servidor y para los clientes. Para ello usaremos el comando "**wg**" que nos ofrece wireguard.
 
-```jsx title="Generación de claves"
+```bash title="Generación de claves"
 wg genkey | tee privatekey | wg pubkey > publickey
 ```
 
 Una vez generadas las claves debemos configurar el fichero "**/etc/wireguard/wg0.conf**". Este fichero contendrá la configuración para la VPN. A continuación pondré una configuración básica pero más que suficiente para funcionar, en este escenario.
 
-```jsx title="Configuración del servidor WireGuard"
+```bash title="Configuración del servidor WireGuard"
 [Interface]
 Address = 10.0.99.1/24
 PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
@@ -561,7 +561,7 @@ En el caso de que el cliente sea un ordenador, ya tenga Linux, Windows o Mac, el
 
 Ahora veremos un fichero estándar o base que nos servirá para todos los clientes con WireGuard.
 
-```jsx title="Fichero de configuración de WireGuard cliente"
+```bash title="Fichero de configuración de WireGuard cliente"
 [Interface]
 Address = 10.0.99.4/32
 PrivateKey = aILaZ/lt5YtPnL8O8/IgLQoIIiWTtO7s021NvHpCDWk=
@@ -636,7 +636,7 @@ En el caso de esta herramienta no existe el concepto servidor/cliente, hace uso 
 
 Dejare a continuación de forma resumida las reglas iptables para las dos maquinas con WireGuard.
 
-```jsx title="Reglas iptables para ambas maquinas"
+```bash title="Reglas iptables para ambas maquinas"
 iptables -A FORWARD -i wg0 -j ACCEPT
 iptables -A FORWARD -o wg0 -j ACCEPT
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
@@ -644,7 +644,7 @@ iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
 También podemos configurarlo dentro del fichero de configuración de WireGuard, en la sección "**[Interface]**" añadiendo la siguiente línea:
 
-```jsx title="Reglas iptables dentro del fichero de configuración de WireGuard"
+```bash title="Reglas iptables dentro del fichero de configuración de WireGuard"
 PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
 ```
