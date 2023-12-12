@@ -38,17 +38,17 @@ Este fichero puede estar ya incluido o puede ser generado como vimos en el punto
 ## Compilar gparted
 
 Ahora que ya sabemos como funciona el compilador, vamos a compilar el programa “gparted”. Podemos obtener su código fuente de diferentes formas, pero al estar en los repositorios de mi sistema lo obtendré usando el comando:
-```jsx
+```bash
 apt source gparted
 ```
 
 Esto descarga el comprimido del código fuente y lo descomprime de forma automática, también descarga un fichero con formato “.desc” en el que se indicará las dependencias necesarias para compilar esta herramienta y otros datos de control. En nuestro caso como está en los repositorios podemos automatizar esta instalación de dependencias con el comando:
-```jsx
+```bash
 apt build-dep gparted
 ```
 
 Ya con todo preparado nos iremos al directorio donde esta los ficheros de esta herramienta que hemos descargado antes y ejecutamos el fichero “configure”, a esta ejecución añadiremos una opción que sera “prefix” para indicarle que queremos que se instale en un directorio diferente al habitual que suele ser “/usr/local”. Esto hará que no sea reconocido por el sistema de forma automática, pero funcionará correctamente el programa. Ejecutamos lo siguiente y veremos que nos da también un resumen de la configuración.
-```jsx title="./configure --prefix=/comp"
+```bash title="./configure --prefix=/comp"
 ........
 ======================== Final configuration ===========================
                          Installing into prefix  :  /comp
@@ -70,7 +70,7 @@ Ya con todo preparado nos iremos al directorio donde esta los ficheros de esta h
 ========================================================================
 ```
 Ahora tal y como nos indica haremos uso del comando “make install” aunque en mi caso especificar el número de núcleos que voy a usar para que se haga de una forma mas rápida, esto lo haremos de la siguiente forma:
-```jsx
+```bash
 make install -j12
 ```
 :::tip Consejo para compilar
@@ -79,10 +79,10 @@ Cuando compilamos podemos seleccionar los núcleos que vamos a usar para dicho p
 :::
 
 Los ficheros Makefile, contiene multitud de funcionalidades preprogramadas, se podría decir que es un script que automatiza todo lo explicado anteriormente. Algunos desarrolladores también incluye la opción de poder desinstalar, otras veces eso tendremos que hacerlo manualmente y borrar todo los directorios o ficheros añadidos a nuestro sistema. Tambien es muy importante señalar que los ficheros generados por el “make” podemos limpiarlo para que ocupe menos espacio el directorio, dejando la carpeta que contiene el software compilado como estaba al inicio. Yo personalmente una vez instalado el paquete y comprobado que funciona suelo borrar el directorio completo con todos los ficheros compilados y no compilados al no ser necesario. Dejo a continuación los comandos mencionados.
-```jsx title="Comando para desinstalar la herramienta:"
+```bash title="Comando para desinstalar la herramienta:"
 make uninstall
 ```
-```jsx title="Comando para limpiar los ficheros generados al compilar:"
+```bash title="Comando para limpiar los ficheros generados al compilar:"
 make clean
 ```
 
