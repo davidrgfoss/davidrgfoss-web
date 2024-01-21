@@ -1,0 +1,348 @@
+---
+sidebar_position: 1
+---
+import ReactPlayer from 'react-player'
+
+# MongoDB
+
+## Ejercicio 1: Averigua si existe la posibilidad en MongoDB de limitar el acceso de un usuario a los datos de una colección determinada.
+
+En MongoDB, puedes limitar el acceso de un usuario a una colección específica mediante roles. Los permisos de usuario se pueden definir a nivel de colección utilizando roles personalizados que especifican las acciones permitidas.
+
+Para restringir el acceso de un usuario a datos específicos de una colección en MongoDB, se pueden asignar roles con permisos específicos.
+
+* Crear rol.
+```bash
+db.createRole({
+  role: "rolusuarios-4",
+  privileges: [
+    { resource: { db: "pr", collection: "prueba" }, actions: ["find", "update"] }
+  ],
+  roles: []
+})
+```
+
+* Crear usuario con el rol que hemos creado.
+```bash
+db.createUser({
+  user: "userprueba1",
+  pwd: "1",
+  roles: [
+    { role: "rolusuarios-4", db: "pr" }
+  ],
+});
+```
+
+* Tambien podemos asignar el rol a un usuario ya existente de la siguiente forma.
+```bash
+db.grantRolesToUser(
+  "userprueba1", 
+  [ 
+    { role: "rolusuarios-4", db: "pr" } 
+  ]
+);
+```
+
+## Ejercicio 2: Averigua si en MongoDB existe el concepto de privilegio del sistema y muestra las diferencias más importantes con ORACLE.
+
+En MongoDB, el concepto de privilegio del sistema es un conjunto de permisos que se aplican a nivel de la instancia de la base de datos completa y no a bases de datos individuales o a colecciones. Estos privilegios permiten a los usuarios realizar acciones que afectan a toda la base de datos o a un conjunto de bases de datos. En ORACLE, los privilegios del sistema son más granulares y están orientados a permitir acciones específicas dentro del entorno de la base de datos. Algunas de las diferencias clave con respecto a MongoDB son:
+   
+1. Modelo de Base de Datos
+
+- **MongoDB**: Es una base de datos NoSQL orientada a documentos. Su modelo de permisos está diseñado para ser más flexible y directo, adecuado para esquemas dinámicos y estructuras de datos variadas.
+- **Oracle**: Es una base de datos relacional SQL. Su sistema de permisos es más granular y complejo, reflejando la necesidad de un control detallado en un entorno relacional estructurado.
+
+2. Granularidad de los Permisos
+
+- **MongoDB**: Los permisos suelen ser a nivel de base de datos o colección. No ofrece control a nivel de fila o columna como en las bases de datos relacionales. Los permisos se agrupan en roles.
+- **Oracle**: Ofrece un control de permisos muy detallado a nivel de objeto de base de datos, como tablas, vistas y procedimientos almacenados. Se pueden asignar permisos específicos para operaciones como SELECT, INSERT, UPDATE, DELETE a nivel de fila y columna.
+
+3. Gestión de Roles
+
+- **MongoDB**: Proporciona roles predefinidos y permite crear roles personalizados. Sin embargo, no admite la anidación de roles (roles que contienen otros roles).
+- **Oracle**: Tiene un sistema robusto de roles, incluyendo la capacidad de crear roles personalizados y anidarlos. Esto permite una gestión de permisos más flexible y escalable.
+
+4. Control de Acceso Basado en Políticas
+
+- **MongoDB**: No tiene un sistema integrado de control de acceso basado en políticas similar al Virtual Private Database (VPD) de Oracle.
+- **Oracle**: Ofrece características avanzadas como VPD, que permite controlar el acceso a nivel de fila basado en políticas, lo cual es crucial en entornos multiusuario y multiorganización.
+
+:::info VPD (Virtual Private Database)
+VPD es una característica de seguridad de Oracle Database que permite implementar controles de seguridad a nivel de fila en las tablas de una base de datos. VPD ayuda a crear políticas de seguridad que controlan el acceso a los datos a un nivel muy granular.
+
+Aspectos importantes de VPD:
+1. **Control de Acceso a Nivel de Fila**: Permite definir políticas que controlan qué filas son visibles o modificables por un usuario en una tabla.
+2. **Políticas Dinámicas**: Las políticas de VPD pueden variar dinámicamente en función de atributos como la identidad del usuario, el rol o el contexto de la sesión.
+3. **Seguridad Integrada**: Al ser una característica integrada en Oracle Database, VPD es altamente eficiente y segura, y no requiere modificaciones en las aplicaciones que acceden a la base de datos.
+4. **Cumplimiento y Privacidad de Datos**: VPD es esencial para implementar requisitos de seguridad detallados y cumplir con normativas de privacidad de datos, como GDPR o HIPAA.
+5. **Transparencia**: Para las aplicaciones y usuarios, el filtrado de datos de VPD es transparente. Las políticas se aplican automáticamente cuando se accede a los datos, sin necesidad de cambios en las consultas o la lógica de la aplicación.
+:::
+
+5. Auditoría y Seguridad
+
+- **MongoDB**: Tiene capacidades de auditoría, pero están más limitadas en comparación con Oracle. La auditoría se centra más en las operaciones realizadas en la base de datos.
+- **Oracle**: Posee capacidades avanzadas de auditoría y seguridad, permitiendo un seguimiento detallado de todas las operaciones y cambios a nivel de usuario y objeto de base de datos.
+
+6. Escalabilidad y Entornos Empresariales
+
+- **MongoDB**: Su sistema de permisos, más simple y directo, suele ser adecuado para aplicaciones web modernas y entornos de desarrollo ágil donde los esquemas y los requisitos pueden cambiar rápidamente.
+- **Oracle**: El enfoque detallado y granular de Oracle en cuanto a permisos es más adecuado para grandes entornos empresariales donde la seguridad, la auditoría y el control de acceso detallado son de suma importancia.
+
+7. Integración y Personalización
+
+- **MongoDB**: Permite cierta integración con sistemas de gestión de identidades externos (como `LDAP`) para la autenticación, pero la personalización de los permisos es limitada en comparación con Oracle.
+- **Oracle**: Ofrece una amplia gama de opciones de integración y personalización en su sistema de permisos, facilitando la adaptación a complejas necesidades empresariales y de cumplimiento normativo.
+
+:::info LDAP (Lightweight Directory Access Protocol)
+
+LDAP es un protocolo estándar de la industria utilizado para acceder y mantener servicios de directorio distribuidos sobre una red de Internet Protocol (IP). Es principalmente utilizado para la gestión de identidades y la información relacionada con usuarios, grupos, y dispositivos, facilitando la autenticación y la autorización en sistemas y aplicaciones. 
+
+Características clave de LDAP:
+1. **Directorio de Servicios**: Funciona como un directorio centralizado para la información del usuario, lo que permite una gestión eficiente de los detalles de los usuarios y sus privilegios.
+2. **Consulta y Modificación de Información**: Permite buscar y modificar información en el directorio de servicios de manera eficiente.
+3. **Autenticación y Autorización**: Ampliamente usado para autenticar a los usuarios en diferentes sistemas y controlar su acceso a recursos y servicios.
+4. **Interoperabilidad**: LDAP es compatible con múltiples sistemas y aplicaciones, lo que lo hace ideal para entornos heterogéneos y multiplataforma.
+5. **Escalabilidad y Desempeño**: Diseñado para manejar grandes cantidades de datos y un alto número de consultas, LDAP es adecuado para organizaciones de todos los tamaños.
+:::
+
+Estas serian las diferencias entre `Oracle` y `MongoDB`, voy a poner ahora dos apartados con los roles mas usados normalmente y su explicación. Esta lista esta sacada de internet y resumida.
+
+
+## Ejercicio 3: Explica los roles por defecto que incorpora MongoDB y como se asignan a los usuarios.
+
+En este punto pondre dos apartados donde veremos los roles de `MongoDB`y de `Oracle`. Aunque solo se pide uno, habia escrito para ambos de forma comparativa para el punto anterior.
+
+### Roles de MongoDB
+
+En MongoDB, los roles por defecto se dividen en varias categorías según el tipo de operaciones que permiten realizar. Aquí tienes una descripción detallada de cada uno y cómo se asignan a los usuarios:
+
+#### Roles para Operaciones de Base de Datos
+
+- **read**: Permite a los usuarios leer datos de las bases de datos especificadas.
+- **readWrite**: Incluye los mismos permisos que
+
+ `read`, pero también permite a los usuarios modificar y eliminar datos existentes, así como insertar nuevos datos en la base de datos.
+- **dbAdmin**: Proporciona acceso a tareas administrativas para la base de datos. Incluye capacidades como la gestión de índices, la visualización de estadísticas y la ejecución de ciertas tareas de mantenimiento.
+- **dbOwner**: Combina los permisos de `readWrite` y `dbAdmin`, además de permitir la gestión de usuarios y roles en la base de datos específica.
+- **userAdmin**: Permite a los usuarios administrar cuentas de usuario y roles en la base de datos especificada.
+
+#### Roles para Operaciones de Replicación
+
+- **readAnyDatabase**: Otorga permisos de lectura en todas las bases de datos excepto `local`. Este rol es comúnmente asignado al rol `clusterMonitor`.
+
+#### Roles para Operaciones de Replicación y Sharding
+
+- **clusterAdmin**: Otorga permisos para administrar y monitorear las configuraciones de clúster, como la replicación y el sharding. Incluye tareas como la administración de réplicas y el balanceo de shards.
+- **clusterManager**: Proporciona permisos de gestión en operaciones de clúster, pero no incluye todas las capacidades de monitoreo del rol `clusterAdmin`.
+- **clusterMonitor**: Otorga permisos para monitorear las herramientas de diagnóstico del clúster, como la visualización del estado de la réplica y el estado del sharding.
+- **hostManager**: Permite a los usuarios gestionar y monitorear servidores, como reiniciar instancias y ver logs.
+
+#### Roles para Copias de Seguridad y Restauración
+
+- **backup**: Permite a los usuarios realizar copias de seguridad de los datos de la base de datos.
+- **restore**: Permite a los usuarios restaurar los datos de las copias de seguridad.
+
+#### Roles a Nivel de Todo el Sistema
+
+- **readWriteAnyDatabase**: Similar al rol `readWrite`, pero aplicable a todas las bases de datos en la instancia de MongoDB.
+- **userAdminAnyDatabase**: Como `userAdmin`, pero a nivel de instancia, permitiendo al usuario administrar usuarios y roles en todas las bases de datos.
+- **dbAdminAnyDatabase**: Similar a `dbAdmin`, pero aplicable a todas las bases de datos en la instancia.
+
+#### Roles Especiales
+
+- **superuser**: No es un rol oficial en MongoDB, pero se refiere comúnmente a un usuario que tiene el rol `root`.
+- **root**: Otorga todos los permisos posibles en la instancia de MongoDB. Es el rol más poderoso y debe usarse con precaución.
+
+#### Asignación de Roles
+
+Para asignar cualquiera de estos roles a un usuario, utilizarías el comando `grantRolesToUser`. Aquí tienes un ejemplo de cómo asignar el rol `readWrite` y `dbAdmin` a un usuario en una base de datos específica:
+
+```javascript
+db.grantRolesToUser('nombreDeUsuario', ['readWrite', 'dbAdmin'])
+```
+
+En este comando, reemplazarías `'nombreDeUsuario'` con el nombre de usuario real y los roles enumerados serían los que deseas asignar. Este comando se ejecutaría en el contexto de la base de datos a la que deseas que el usuario tenga acceso. Si deseas otorgar privilegios que se apliquen a todas las bases de datos, conectarías a la base de datos `admin` y ejecutarías un comando similar.
+
+### Roles de Oracle
+
+#### Roles para Operaciones de Base de Datos
+
+- **CONNECT**: Tradicionalmente otorgaba privilegios mínimos para conectarse a la base de datos, pero en versiones recientes, solo otorga el privilegio `CREATE SESSION`.
+- **RESOURCE**: Permitía a los usuarios crear sus propios objetos de base de datos como tablas, vistas, secuencias, etc. En versiones recientes, se recomienda otorgar estos privilegios de forma explícita en lugar de usar este rol.
+- **DBA**: Otorga todos los privilegios administrativos necesarios para gestionar la base de datos, incluyendo la capacidad de crear y eliminar usuarios, otorgar y revocar privilegios y roles, y realizar tareas de mantenimiento y seguridad.
+- **EXP_FULL_DATABASE**: Proporciona los privilegios necesarios para realizar exportaciones de base de datos completas utilizando la herramienta `exp` o Data Pump.
+- **IMP_FULL_DATABASE**: Proporciona los privilegios necesarios para realizar importaciones de base de datos completas utilizando la herramienta `imp` o Data Pump.
+
+#### Roles para Seguridad y Auditoría
+
+- **AUDIT_ADMIN**: Permite a los usuarios gestionar la configuración de auditoría y políticas de la base de datos.
+- **AUDIT_VIEWER**: Otorga permisos para ver los registros de auditoría de la base de datos.
+
+#### Roles para la Administración Avanzada
+
+- **AQ_ADMINISTRATOR_ROLE**: Otorga privilegios para administrar colas avanzadas (Advanced Queuing).
+- **AQ_USER_ROLE**: Permite a los usuarios encolar y desencolar mensajes dentro de Advanced Queuing.
+- **DATAPUMP_EXP_FULL_DATABASE**: Otorga privilegios para realizar exportaciones completas de base de datos usando Data Pump.
+- **DATAPUMP_IMP_FULL_DATABASE**: Otorga privilegios para realizar importaciones completas de base de datos usando Data Pump.
+
+#### Roles para Operaciones de Copias de Seguridad y Recuperación
+
+- **RECOVERY_CATALOG_OWNER**: Otorga privilegios necesarios para mantener el catálogo de recuperación de RMAN.
+
+#### Roles para la Administración de Red
+
+- **HS_ADMIN_ROLE**: Proporciona los privilegios necesarios para administrar servicios heterogéneos (conexiones a bases de datos no Oracle).
+
+#### Asignación de Roles en Oracle
+
+Para asignar un rol a un usuario en Oracle, se usa la instrucción SQL `GRANT`. Aquí hay un ejemplo de cómo asignar los roles `CONNECT` y `RESOURCE` a un usuario:
+
+```sql
+GRANT CONNECT, RESOURCE TO usuario_identificado;
+```
+
+En este comando, reemplazarías `usuario_identificado` con el nombre de usuario real al que deseas asignar los roles. Este comando se ejecutaría con privilegios administrativos dentro de una sesión SQL de Oracle.
+
+## Ejercicio 4: Explica como puede consultarse el diccionario de datos de MongoDB para saber que roles han sido concedidos a un usuario y qué privilegios incluyen.
+
+Puedes consultar los roles y privilegios asignados a un usuario en MongoDB con el comando `db.getUser('username')`, que mostrará toda la información de seguridad relativa al usuario.
+
+## Ejercicio 5: Averigua si es posible limitar el acceso a un documento concreto de una colección.
+
+MongoDB no permite restringir el acceso a nivel de documento directamente con las características de seguridad integradas. Las restricciones a nivel de documento generalmente se manejan a nivel de aplicación.
+
+## Ejercicio 6: Averigua si se puede conseguir que un usuario solo tenga permiso para ver ciertos atributos de los documentos.
+
+MongoDB no tiene una funcionalidad incorporada para restringir el acceso a atributos específicos dentro de un documento. Esto también se manejaría mejor a nivel de aplicación, devolviendo solo los campos necesarios.
+
+Con las funciones integradas solo podriamos filtrar la salida de una consulta. Por ejemplo podemos el siguiente comando para que muestre solamente dos campos de un documento.
+
+```bash
+db.pr.find({}, { campo1: 1, campo2: 1 })
+```
+
+## Ejercicio 7: Averigua si en MongoDB existe alguna posibilidad de limitar la cantidad de recursos utilizados por un usuario.
+
+MongoDB no ofrece una manera directa de limitar los recursos (como CPU, ancho de banda o IOPS) utilizados por un usuario individual. Se pueden establecer límites a nivel de instancia o mediante la configuración del servidor.
+
+## Ejercicio 8: Averigua si en MongoDB existe alguna posibilidad de definir las características de la contraseña de un usuario.
+
+MongoDB permite establecer políticas de contraseñas a través de mecanismos de autenticación externos, como LDAP o x.509, pero no tiene su propia funcionalidad para definir características de contraseña.
+
+Podemos habilitar esta opcion en el fichero de configuración de `MongoDB` añadiendo lo siguiente en el apartado de seguridad.
+
+```bash
+// Esto es una configuración genérica de ejemplo para la integración con LDAP
+security:
+  authorization: enabled
+  ldap:
+    servers: ldap1.example.net,ldap2.example.net
+    userToDNMapping: [...]
+    authz:
+      queryTemplate: [...]
+```
+
+
+# Oracle
+
+## Ejercicio 1: Realiza un procedimiento llamado MostrarObjetosAccesibles que reciba un nombre de usuario y muestre todos los objetos a los que tiene acceso, bien porque sean suyos o porque algún privilegio de sistema o sobre objetos se lo haya concedido.
+
+```sql
+CREATE OR REPLACE PROCEDURE MostrarObjetosAccesibles(p_username IN VARCHAR2) IS
+BEGIN
+    -- Mostrar objetos propios del usuario
+    DBMS_OUTPUT.PUT_LINE('Objetos propios de ' || p_username || ':');
+    FOR r IN (SELECT object_name, object_type 
+              FROM all_objects 
+              WHERE owner = UPPER(p_username)) LOOP
+        DBMS_OUTPUT.PUT_LINE(r.object_type || ': ' || r.object_name);
+    END LOOP;
+
+    DBMS_OUTPUT.PUT_LINE(' ');
+
+    -- Mostrar objetos a los que el usuario tiene acceso
+    DBMS_OUTPUT.PUT_LINE('Objetos accesibles por ' || p_username || ':');
+    FOR r IN (SELECT grantee, owner, table_name, privilege 
+              FROM all_tab_privs 
+              WHERE grantee = UPPER(p_username)) LOOP
+        DBMS_OUTPUT.PUT_LINE('Privilegio: ' || r.privilege || ' en ' || r.owner || '.' || r.table_name);
+    END LOOP;
+END MostrarObjetosAccesibles;
+/
+```
+* Explicacion del codigo
+
+   1. El procedimiento MostrarObjetosAccesibles toma un nombre de usuario (p_username) como parámetro.
+
+   2. Utiliza un bucle FOR para iterar a través de todos los objetos que son propiedad del usuario especificado, consultando la vista all_objects.
+
+   3. Luego, realiza otra iteración para listar todos los objetos a los que el usuario tiene acceso a través de privilegios concedidos, utilizando la vista all_tab_privs.
+   DBMS_OUTPUT.PUT_LINE se usa para imprimir los resultados.
+
+
+## Ejercicio 2: Realiza un procedimiento que reciba un nombre de usuario, un privilegio y un objeto y nos muestre el mensaje 'SI, DIRECTO' si el usuario tiene ese privilegio sobre objeto concedido directamente, 'SI, POR ROL' si el usuario lo tiene en alguno de los roles que tiene concedidos y un 'NO' si el usuario no tiene dicho privilegio.  Debes realizar el procedimiento empleando la técnica de la recursividad para contemplar infinitos niveles de roles anidados.
+
+* Funcion recursiva que comprueba los roles anidados
+```sql
+CREATE OR REPLACE FUNCTION TienePrivilegioRol(p_username IN VARCHAR2, p_privilege IN VARCHAR2, p_object IN VARCHAR2, p_role IN VARCHAR2) RETURN VARCHAR2 IS
+    v_privilege_count INT;
+BEGIN
+    -- Verificar si el rol tiene el privilegio directamente
+    SELECT COUNT(*)
+    INTO v_privilege_count
+    FROM role_tab_privs
+    WHERE role = p_role
+    AND privilege = p_privilege
+    AND table_name = p_object;
+
+    IF v_privilege_count > 0 THEN
+        RETURN 'SI, POR ROL';
+    ELSE
+        -- Verificar roles anidados
+        FOR r IN (SELECT granted_role FROM role_role_privs WHERE role = p_role) LOOP
+            IF TienePrivilegioRol(p_username, p_privilege, p_object, r.granted_role) = 'SI, POR ROL' THEN
+                RETURN 'SI, POR ROL';
+            END IF;
+        END LOOP;
+    END IF;
+
+    RETURN 'NO';
+END TienePrivilegioRol;
+/
+```
+
+* Procedimiento principal:
+```sql
+CREATE OR REPLACE PROCEDURE VerificarPrivilegioUsuario(p_username IN VARCHAR2, p_privilege IN VARCHAR2, p_object IN VARCHAR2) IS
+    v_privilege_count INT;
+BEGIN
+    -- Verificar privilegio directo
+    SELECT COUNT(*)
+    INTO v_privilege_count
+    FROM user_tab_privs
+    WHERE grantee = p_username
+    AND privilege = p_privilege
+    AND table_name = p_object;
+
+    IF v_privilege_count > 0 THEN
+        DBMS_OUTPUT.PUT_LINE('SI, DIRECTO');
+    ELSE
+        -- Verificar privilegio a través de roles
+        FOR r IN (SELECT granted_role FROM user_role_privs WHERE username = p_username) LOOP
+            IF TienePrivilegioRol(p_username, p_privilege, p_object, r.granted_role) = 'SI, POR ROL' THEN
+                DBMS_OUTPUT.PUT_LINE('SI, POR ROL');
+                RETURN;
+            END IF;
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('NO');
+    END IF;
+END VerificarPrivilegioUsuario;
+/
+```
+
+* Explicacion del codigo:
+
+   1. Función TienePrivilegioRol: Esta función recursiva verifica si un rol específico (o cualquiera de sus roles anidados) tiene el privilegio sobre el objeto especificado.
+
+   2. Procedimiento VerificarPrivilegioUsuario: Este procedimiento primero verifica si el usuario tiene el privilegio directamente. Si no lo tiene, utiliza la función TienePrivilegioRol para comprobar los roles asignados al usuario.
+

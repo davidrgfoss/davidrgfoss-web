@@ -1,0 +1,283 @@
+---
+sidebar_position: 2
+---
+
+# Gestion de usuario Grupal
+
+## Ejercicio 1.1: (ORACLE, Postgres, MySQL) Crea un usuario llamado Empleado y, sin usar los roles predefenidos, dale los siguientes privilegios: (1,5 puntos)
+
+*	Conectarse a la base de datos.
+*	Modificar la duración máxima de las sesiones de otros usuarios.
+*	Modificar índices en cualquier esquema (este privilegio podrá pasarlo a quien quiera).
+*	Insertar filas en scott.emp (este privilegio podrá pasarlo a quien quiera).
+*	Insertar datos en tablas ubicadas en cualquier tablespace.
+*	Gestión completa de usuarios, privilegios y roles.
+
+1. Conectarse a la base de datos.
+
+  * **Crear el Usuario `Empleado`**:
+    ```sql
+    CREATE USER Empleado IDENTIFIED BY password;
+    ```
+
+  * **Otorgar Privilegio de Conexión**:
+    ```sql
+    GRANT CREATE SESSION TO Empleado;
+    ```
+
+2. **Modificar la Duración Máxima de las Sesiones de Otros Usuarios**:
+   Este es un privilegio de administración de sistema. Podrías otorgar el privilegio `ALTER SYSTEM`, pero ten en cuenta que es un privilegio muy amplio y poderoso.
+   ```sql
+   GRANT ALTER SYSTEM TO Empleado;
+   ```
+
+3. **Modificar Índices en Cualquier Esquema**:
+   ```sql
+   GRANT ALTER ANY INDEX TO Empleado WITH ADMIN OPTION;
+   ```
+
+4. **Insertar Filas en `scott.emp`**:
+   ```sql
+   GRANT INSERT ON scott.emp TO Empleado WITH GRANT OPTION;
+   ```
+
+5. **Insertar Datos en Tablas Ubicadas en Cualquier Tablespace**:
+   Este privilegio no existe como tal en Oracle. Puedes otorgar `CREATE TABLE` para permitirle a `Empleado` crear tablas en cualquier `tablespace`. Este privilegio va unido al de escribir en la tabla que pertenece a ese `tablespace`.
+
+   Un tablespace en Oracle es una unidad de almacenamiento lógica, compuesta por uno o más archivos físicos en el sistema de archivos del servidor, conocidos como archivos de datos. Estos tablespaces organizan los datos en categorías lógicas (como datos de usuario, datos del sistema e índices), facilitando la gestión del espacio en disco, la seguridad, el rendimiento y las operaciones de respaldo y recuperación.
+   
+   En Oracle, no hay un privilegio específico para insertar en cualquier tablespace, tendras permiso para insertar en los tablespace que pertenezcan a todo esquema,tabla que tengas permitido insertar datos. Esto se puede controlar o restringir mediante la asignación de cuotas en tablespaces y otorgando privilegios específicos de objeto. 
+
+    - **Otorgar Privilegios Básicos**:
+      - Creación de tablas (esto no especifica tablespaces).
+        ```sql
+        GRANT CREATE TABLE TO Empleado;
+        ```
+
+    - **Asignar Cuotas en Tablespaces**:
+      - Esto permite al usuario `Empleado` utilizar espacio en un tablespace específico. Debes repetir este comando para cada tablespace donde quieras permitir que Empleado cree tablas.
+        ```sql
+        ALTER USER Empleado QUOTA unlimited ON tu_tablespace;
+        ```
+        :::tip Especificar tamaño
+        Si deseas asignar una cuota específica en lugar de ilimitada, puedes hacerlo especificando una cantidad, por ejemplo, `100M` para 100 megabytes.
+        :::
+
+6. **Gestión Completa de Usuarios, Privilegios y Roles**:
+   Para gestionar usuarios, privilegios y roles, necesitarás otorgar una serie de privilegios de administración del sistema. Esto incluye `CREATE USER`, `ALTER USER`, `DROP USER`, `GRANT ANY PRIVILEGE`, `GRANT ANY ROLE`, y `CREATE ROLE`.
+   ```sql
+   GRANT CREATE USER, ALTER USER, DROP USER, GRANT ANY PRIVILEGE, GRANT ANY ROLE, CREATE ROLE TO Empleado WITH ADMIN OPTION;
+   ```
+
+7. **Ejemplo de como seria todo junto**:
+    ```sql
+    CREATE USER Empleado IDENTIFIED BY contraseña;
+    GRANT CREATE SESSION, ALTER SYSTEM, ALTER ANY INDEX, CREATE TABLE TO Empleado WITH ADMIN OPTION;
+    GRANT INSERT ON scott.emp TO Empleado WITH GRANT OPTION;
+    GRANT CREATE USER, ALTER USER, DROP USER, GRANT ANY PRIVILEGE, GRANT ANY ROLE, CREATE ROLE TO Empleado WITH ADMIN OPTION;
+    ```
+
+### Diferencias entre `WITH ADMIN OPTION` y `WITH GRANT OPTION`.
+
+La diferencia entre "WITH ADMIN OPTION" y "WITH GRANT OPTION" en Oracle radica en el tipo de privilegio que se está otorgando y cómo puede ser transferido a otros usuarios.
+
+- **WITH GRANT OPTION**: Para privilegios específicos de objetos. Permite al usuario dar esos privilegios específicos a otros usuarios.
+- **WITH ADMIN OPTION**: Para roles y privilegios de sistema más amplios. Permite al usuario administrar completamente esos privilegios o roles, incluyendo la capacidad de otorgarlos a otros.
+
+#### WITH GRANT OPTION
+
+- **Uso**: Se utiliza cuando se otorgan privilegios de objeto, como `SELECT`, `INSERT`, `UPDATE`, `DELETE` en tablas específicas, o privilegios como `EXECUTE` en procedimientos almacenados.
+- **Propósito**: Permite al usuario que recibe el privilegio otorgar ese mismo privilegio a otros usuarios.
+- **Ejemplo**: Si otorgas `INSERT ON scott.emp TO Empleado WITH GRANT OPTION`, Empleado podrá insertar filas en la tabla `scott.emp` y también tendrá la capacidad de dar a otros usuarios el privilegio de insertar filas en esa tabla.
+
+#### WITH ADMIN OPTION
+
+- **Uso**: Se utiliza para privilegios de sistema y roles, que son más generales y no se refieren a objetos específicos. Estos privilegios pueden incluir acciones como crear usuarios, alterar índices o roles, y realizar cambios en el sistema.
+- **Propósito**: Permite al usuario no solo utilizar el privilegio o rol, sino también otorgar ese privilegio o rol a otros usuarios, así como modificar o eliminar el rol.
+- **Ejemplo**: Si otorgas `CREATE ROLE TO Empleado WITH ADMIN OPTION`, Empleado podrá crear roles nuevos y también otorgar, modificar o eliminar esos roles.
+
+## Ejercicio 1.2: (PostgreSQL) Crea un usuario llamado Empleado y, sin usar los roles predefenidos, dale los siguientes privilegios: (1,5 puntos)
+
+*	Conectarse a la base de datos.
+*	Modificar la duración máxima de las sesiones de otros usuarios.
+*	Modificar índices en cualquier esquema (este privilegio podrá pasarlo a quien quiera).
+*	Insertar filas en scott.emp (este privilegio podrá pasarlo a quien quiera).
+*	Insertar datos en tablas ubicadas en cualquier tablespace.
+*	Gestión completa de usuarios, privilegios y roles.
+
+1. Conectarse a la base de datos.
+  * Crear el Usuario `Empleado`.
+    ```sql
+    CREATE USER Empleado WITH PASSWORD 'contraseña';
+    ```
+  * Conectarse a la Base de Datos.
+    ```sql
+    GRANT CONNECT ON DATABASE datos TO Empleado;
+    ```
+
+2. Modificar la Duración Máxima de las Sesiones de Otros Usuarios
+  `PostgreSQL` maneja la duración de las sesiones a través de parámetros de configuración, como `idle_in_transaction_session_timeout` o `statement_timeout`. No hay un privilegio directo que permita a un usuario cambiar estos valores para otras sesiones. Estos parámetros generalmente se configuran a nivel de sesion o sistema, siendo la primera forma es temporal y atada a la sesion actual, la segunda opcion siendo permanente.
+
+  * **`idle_in_transaction_session_timeout`**: Este parámetro especifica la cantidad máxima de tiempo en milisegundos que una transacción puede permanecer inactiva antes de ser abortada por el servidor. Si se configura como cero, no hay límite.
+
+  * **`statement_timeout`**: Este parámetro determina el tiempo máximo en milisegundos que una consulta SQL puede ejecutarse antes de ser cancelada. Si se configura como cero, no hay límite de tiempo.
+
+  * Como hemos dicho anteriormente, se puede configurar de dos formas:
+    1. A nivel de sistema en el fichero `postgresql.conf`:
+    ```ini
+    idle_in_transaction_session_timeout = '5min'
+    statement_timeout = '10min'
+    ```
+    2. A nivel de sesion:
+    ```sql
+    SET idle_in_transaction_session_timeout = '5min';
+    SET statement_timeout = '10min';
+    ```
+
+3. Modificar Índices en Cualquier Esquema.
+    Para permitir a un usuario modificar índices en cualquier esquema, tendrías que darle privilegios de admin, lo cual no es recomendable. Como alternativa, podriamos otorgar privilegios específicos sobre esquemas individuales según sea necesario.
+    ```sql
+    GRANT ALL ON ALL TABLES IN SCHEMA prueba TO Empleado WITH GRANT OPTION;
+    ```
+    :::info
+    Esta instrucción otorga a `Empleado` todos los privilegios sobre todas las tablas en el esquema `prueba`, y puede pasar esos privilegios a otros usuarios.
+    :::
+
+4. Insertar Filas en `scott.emp`.
+  ```sql
+  GRANT INSERT ON scott.emp TO Empleado WITH GRANT OPTION;
+  ```
+  Esto le permite a `Empleado` insertar filas en la tabla y otorgar este privilegio a otros usuarios.
+
+5. Insertar Datos en Tablas Ubicadas en Cualquier Tablespace
+  PostgreSQL no controla los privilegios a nivel de tablespace. Los privilegios se manejan a nivel de base de datos, esquema o tabla.
+
+  * **Base de datos**:  Por ejemplo podemos otorgar a un usuario el derecho a conectarse a una base de datos específica.
+    ```sql
+    GRANT CONNECT ON DATABASE datos TO usuario;
+    ```
+
+  * **Esquema**: Los privilegios pueden ser asignados a nivel de esquema, lo cual afecta a todos los objetos dentro de ese esquema. Por ejemplo, para permitir a un usuario crear tablas en un esquema.
+    ```sql
+    GRANT CREATE ON SCHEMA esquema TO usuario;
+    ```
+
+  * **Tabla**: Por ejemplo podemos otorgar privilegios específicos en tablas individuales, como `SELECT`, `INSERT`, `UPDATE` o `DELETE`. Por ejemplo, para permitir la inserción en una tabla específica.
+    ```sql
+    GRANT INSERT ON tabla TO usuario;
+    ```
+
+6. Gestión Completa de Usuarios, Privilegios y Roles
+  Para gestionar usuarios y roles, podemos otorgarle a `Empleado` el privilegio de `CREATEDB` o `CREATEROLE`, pero esto no le permite modificar usuarios existentes. La gestión completa de usuarios generalmente requiere privilegios de superusuario.
+
+  ```sql
+  GRANT CREATEDB, CREATEROLE TO Empleado;
+  ```
+
+### Control mas precisos(granular) de los privilegios `SECURITY DEFINER`
+
+#### PostgreSQL
+
+El atributo `SECURITY DEFINER` se utiliza en la definición de funciones y procedimientos almacenados para indicar que todas las operaciones dentro de esa función se ejecutarán como si las realizara el usuario que la creó, no el usuario que la está ejecutando.
+
+* Por poner un ejemplo imagina que tienes un usuario llamado Empleado que necesita poder modificar ciertos datos en una tabla a la que normalmente no tendría acceso. Podriamos hacer lo siguiente
+
+* Creamos una funcion que hace modificaciones de datos.
+  ```sql
+  CREATE FUNCTION modificar_datos() RETURNS void AS $$
+  BEGIN
+      -- Instrucciones SQL para modificar datos en la tabla
+  END;
+  $$ LANGUAGE plpgsql SECURITY DEFINER;
+  ```
+
+* Le damos permiso al usuario para ejecutarlo.
+  ```sql
+  GRANT EXECUTE ON FUNCTION modificar_datos() TO Empleado;
+  ```
+
+#### Oracle
+
+En oracle tenemos un concepto equivalente llamado `AUTHID` pero este tiene dos variantes. 
+
+1. **AUTHID DEFINER**: Es el comportamiento predeterminado si no se especifica `AUTHID`, y el código se ejecuta con los privilegios del usuario que creó el procedimiento o función.
+
+2. **AUTHID CURRENT_USER**: El procedimiento o función se ejecuta con los privilegios del usuario que está ejecutando.
+
+* Aqui dejare el codigo de como seria la misma funcion que hicimos antes pero en oracle.
+  ```sql
+  CREATE OR REPLACE FUNCTION modificar_datos RETURN void AUTHID DEFINER AS
+  BEGIN
+      -- Instrucciones SQL para modificar datos en la tabla
+  END modificar_datos;
+  ```
+
+  :::tip Ausencia del `RETURN`
+  `RETURN` void en Oracle se traduce simplemente en no especificar un tipo de retorno, ya que Oracle no tiene un tipo void como en PostgreSQL. En su lugar, si no necesitas que la función devuelva un valor, simplemente omite la cláusula `RETURN`.
+  :::
+
+## Ejercicio 1.3: (MariaDB) Crea un usuario llamado Empleado y, sin usar los roles predefenidos, dale los siguientes privilegios: (1,5 puntos)
+
+*	Conectarse a la base de datos.
+*	Modificar la duración máxima de las sesiones de otros usuarios.
+*	Modificar índices en cualquier esquema (este privilegio podrá pasarlo a quien quiera)
+*	Insertar filas en scott.emp (este privilegio podrá pasarlo a quien quiera)
+*	Insertar datos en tablas ubicadas en cualquier tablespace.
+*	Gestión completa de usuarios, privilegios y roles.
+
+Crear un usuario y configurar privilegios específicos en MariaDB varía un poco en comparación con Oracle. A continuación, te explico cómo realizar cada uno de los puntos que mencionaste en el contexto de MariaDB:
+
+1. Conectarse a la Base de Datos
+  ```sql
+  CREATE USER 'Empleado'@'localhost' IDENTIFIED BY 'tu_contraseña';
+  GRANT USAGE ON *.* TO 'Empleado'@'localhost';
+  ```
+  :::info
+  El uso de `'Empleado'@'localhost'` significa que el usuario `Empleado` solo puede conectarse desde el host local. Ajusta el host según tus necesidades.
+  :::
+
+
+2. Modificar la Duración Máxima de las Sesiones de Otros Usuarios
+  MariaDB no permite modificar la duración de las sesiones de otros usuarios. Este tipo de configuración se realiza a nivel de sistema. Para realizar esto podemos hacer los siguientes pasos.
+
+    1. **Añadir o Modificar el Parámetro `wait_timeout`** en el fichero de configuración:
+      - Modificamos (`my.cnf` o `my.ini`) en nuestro sistema.
+      - Bajo la sección `[mysqld]`, añadimos o modificamos la línea `wait_timeout`. Por ejemplo:
+        ```ini
+        [mysqld]
+        wait_timeout = 28800
+        ```
+      - Este ejemplo establece el `wait_timeout` a 28800 segundos (8 horas). Puedes ajustar este valor según tus necesidades.
+
+    2. **Reiniciar el Servidor MariaDB**:
+      ```bash
+      sudo systemctl restart mariadb
+      ```
+
+    3. **Podemos Verificar la Configuración ejecutando**:
+      ```sql
+      SHOW VARIABLES LIKE 'wait_timeout';
+      ```
+
+3. Modificar Índices en Cualquier Esquema
+  En MariaDB, podemos otorgar privilegios para alterar índices a nivel global:
+  ```sql
+  GRANT INDEX ON *.* TO 'Empleado'@'localhost' WITH GRANT OPTION;
+  ```
+
+4. Insertar Filas en scott.emp
+  ```sql
+  GRANT INSERT ON scott.emp TO 'Empleado'@'localhost' WITH GRANT OPTION;
+  ```
+
+5. Insertar Datos en Tablas Ubicadas en Cualquier Tablespace
+  En MariaDB, los privilegios se manejan a nivel de base de datos o tabla, y no hay privilegios específicos para tablespaces como en Oracle. Para permitir la inserción en cualquier tabla, podemos otorgar privilegios a nivel global:
+  ```sql
+  GRANT INSERT ON *.* TO 'Empleado'@'localhost';
+  ```
+
+6. Gestión Completa de Usuarios, Privilegios y Roles
+  Para permitir la gestión completa de usuarios, privilegios y roles, podemos otorgar privilegios de administración a `Empleado`.
+  ```sql
+  GRANT CREATE USER, RELOAD, SHOW DATABASES, CREATE, ALTER, DROP, GRANT OPTION ON *.* TO 'Empleado'@'localhost';
+  ```
