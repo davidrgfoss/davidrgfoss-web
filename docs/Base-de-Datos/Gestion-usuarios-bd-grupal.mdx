@@ -26,7 +26,7 @@ sidebar_position: 2
     ```
 
 2. **Modificar la Duración Máxima de las Sesiones de Otros Usuarios**:
-   Este es un privilegio de administración de sistema. Podrías otorgar el privilegio `ALTER SYSTEM`, pero ten en cuenta que es un privilegio muy amplio y poderoso.
+   Este es un privilegio de administración de sistema. Podriamos otorgar el privilegio `ALTER SYSTEM`, pero ten en cuenta que es un privilegio muy amplio.
    ```sql
    GRANT ALTER SYSTEM TO Empleado;
    ```
@@ -42,7 +42,7 @@ sidebar_position: 2
    ```
 
 5. **Insertar Datos en Tablas Ubicadas en Cualquier Tablespace**:
-   Este privilegio no existe como tal en Oracle. Puedes otorgar `CREATE TABLE` para permitirle a `Empleado` crear tablas en cualquier `tablespace`. Este privilegio va unido al de escribir en la tabla que pertenece a ese `tablespace`.
+   Este privilegio no existe como tal en Oracle. Puedes otorgar `CREATE TABLE` para permitir a `Empleado` crear tablas en cualquier `tablespace`. Este privilegio va unido al de escribir en la tabla que pertenece a ese `tablespace`.
 
    Un tablespace en Oracle es una unidad de almacenamiento lógica, compuesta por uno o más archivos físicos en el sistema de archivos del servidor, conocidos como archivos de datos. Estos tablespaces organizan los datos en categorías lógicas (como datos de usuario, datos del sistema e índices), facilitando la gestión del espacio en disco, la seguridad, el rendimiento y las operaciones de respaldo y recuperación.
    
@@ -94,7 +94,7 @@ La diferencia entre "WITH ADMIN OPTION" y "WITH GRANT OPTION" en Oracle radica e
 
 - **Uso**: Se utiliza para privilegios de sistema y roles, que son más generales y no se refieren a objetos específicos. Estos privilegios pueden incluir acciones como crear usuarios, alterar índices o roles, y realizar cambios en el sistema.
 - **Propósito**: Permite al usuario no solo utilizar el privilegio o rol, sino también otorgar ese privilegio o rol a otros usuarios, así como modificar o eliminar el rol.
-- **Ejemplo**: Si otorgas `CREATE ROLE TO Empleado WITH ADMIN OPTION`, Empleado podrá crear roles nuevos y también otorgar, modificar o eliminar esos roles.
+- **Ejemplo**: Si otorgas `CREATE ROLE TO Empleado WITH ADMIN OPTION`, `Empleado` podrá crear roles nuevos y también otorgar, modificar o eliminar esos roles.
 
 ## Ejercicio 1.2: (PostgreSQL) Crea un usuario llamado Empleado y, sin usar los roles predefenidos, dale los siguientes privilegios: (1,5 puntos)
 
@@ -135,6 +135,7 @@ La diferencia entre "WITH ADMIN OPTION" y "WITH GRANT OPTION" en Oracle radica e
     ```
 
 3. Modificar Índices en Cualquier Esquema.
+    
     Para permitir a un usuario modificar índices en cualquier esquema, tendrías que darle privilegios de admin, lo cual no es recomendable. Como alternativa, podriamos otorgar privilegios específicos sobre esquemas individuales según sea necesario.
     ```sql
     GRANT ALL ON ALL TABLES IN SCHEMA prueba TO Empleado WITH GRANT OPTION;
@@ -180,7 +181,7 @@ La diferencia entre "WITH ADMIN OPTION" y "WITH GRANT OPTION" en Oracle radica e
 
 El atributo `SECURITY DEFINER` se utiliza en la definición de funciones y procedimientos almacenados para indicar que todas las operaciones dentro de esa función se ejecutarán como si las realizara el usuario que la creó, no el usuario que la está ejecutando.
 
-* Por poner un ejemplo imagina que tienes un usuario llamado Empleado que necesita poder modificar ciertos datos en una tabla a la que normalmente no tendría acceso. Podriamos hacer lo siguiente
+* Por poner un ejemplo imagina que tienes un usuario llamado `Empleado` que necesita poder modificar ciertos datos en una tabla a la que normalmente no tendría acceso. Podriamos hacer lo siguiente
 
 * Creamos una funcion que hace modificaciones de datos.
   ```sql
