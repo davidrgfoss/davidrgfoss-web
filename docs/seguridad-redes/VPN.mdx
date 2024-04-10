@@ -361,23 +361,22 @@ Para configurar el servidor vamos a crear un fichero llamado server.conf en la r
 port 1194
 proto udp
 dev tun
-ca /etc/openvpn/server/ca.crt
-cert /etc/openvpn/server/server.crt
-key /etc/openvpn/server/server.key
-dh /etc/openvpn/server/dh.pem
-tls-crypt /etc/openvpn/server/ta.key
-client-config-dir /etc/openvpn/ccd
-server 10.21.0.0 255.255.255.0
-route 10.0.1.0 255.255.255.0
-push "dhcp-option DNS 1.1.1.1"
-push "route 10.0.0.0 255.255.255.0"
-push "redirect-gateway def1 bypass-dhcp"
-ifconfig-pool-persist ipp.txt
+tls-server
+ca /etc/openvpn/ca.crt
+cert /etc/openvpn/server.crt
+key /etc/openvpn/server.key
+dh /etc/openvpn/dh.pem
+ifconfig 110.11.11.1 110.11.11.2
+route 10.20.20.0 255.255.255.0
+push "route 10.10.10.0 255.255.255.0"
+# Esta opcion obligara a pasar todo el trafico por la vpn, para una pruba donde no hagas masquerade para salir a internet con los clientes es util.
+#push "redirect-gateway def1 bypass-dhcp"
 keepalive 10 120
+tls-auth /etc/openvpn/ta.key 0
 cipher AES-256-CBC
 persist-key
 persist-tun
-status /var/log/openvpn/openvpn-peer1.log
+status openvpn-status.log
 verb 3
 explicit-exit-notify 1
 ```
@@ -402,19 +401,21 @@ Para configurar el cliente vamos a crear un fichero llamado cliente.conf en la r
 client
 dev tun
 proto udp
-remote 10.1.1.1 1194
+remote 10.0.0.1
 resolv-retry infinite
-nobind
+ifconfig 110.11.11.2 110.11.11.1
+#route 10.10.10.0 255.255.255.0
 persist-key
 persist-tun
-ca /etc/openvpn/client/ca.crt
-cert /etc/openvpn/client/cliente.crt
-key /etc/openvpn/client/cliente.key
-tls-crypt /etc/openvpn/client/ta.key
-cipher AES-256-CBC
+ca /etc/openvpn/ca.crt
+cert /etc/openvpn/client.crt
+key /etc/openvpn/client.key
+tls-client
 remote-cert-tls server
-ignore-unknown-option block-outside-dns
-verb3
+tls-auth /etc/openvpn/ta.key 1
+dh /etc/openvpn/dh.pem
+cipher AES-256-CBC
+verb 3
 ```
 Para este caso no hay nada diferente al escenario anterior, por lo que no voy a explicar nada. Solo comentaré una opción que he añadido la cual no es necesaria si no hay clientes Windows. Esta opción es:
  * **ignore-unknown-option block-outside-dns**: Esta opción es específica para clientes Windows y bloquea todos los servidores DNS que estén fuera de la VPN. La directiva ignore-unknown-option se usa para evitar errores si la opción no es reconocida por la versión de OpenVPN.
