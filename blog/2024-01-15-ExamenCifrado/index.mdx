@@ -38,49 +38,12 @@ serial          = $dir/serial
 ```bash
 openssl genrsa -out /home/davidrg/CA/private/server.key 4096
 openssl req -new -key /home/davidrg/CA/private/server.key -out /home/davidrg/CA/private/server.csr
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
-For some fields there will be a default value,
-If you enter '.', the field will be left blank.
------
-Country Name (2 letter code) [AU]:ES
-State or Province Name (full name) [Some-State]:Sevilla
-Locality Name (eg, city) []:Dos Hermanas
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:davidrgfoss
-Organizational Unit Name (eg, section) []:davidrgfoss
-Common Name (e.g. server FQDN or YOUR name) []:davidrgfoss.localdomain
-Email Address []:davidrg@davidrgfoss.com
-
-Please enter the following 'extra' attributes
-to be sent with your certificate request
-A challenge password []:
-An optional company name []:
 ```
 
 * Creamos la clave privada y el certificado de la CA que vamos a crear
 ```bash
 openssl genrsa -aes256 -out /home/davidrg/CA/private/cakey.pem 4096
-Enter PEM pass phrase:
-Verifying - Enter PEM pass phrase:
-
 openssl req -new -x509 -days 3650 -key /home/davidrg/CA/private/cakey.pem -out /home/davidrg/CA/cacert.pem
-Enter pass phrase for /home/davidrg/CA/private/cakey.pem:
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
-For some fields there will be a default value,
-If you enter '.', the field will be left blank.
------
-Country Name (2 letter code) [AU]:ES
-State or Province Name (full name) [Some-State]:Sevilla
-Locality Name (eg, city) []:Dos Hermanas
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:davidrgfoss
-Organizational Unit Name (eg, section) []:davidrgfoss
-Common Name (e.g. server FQDN or YOUR name) []:davidrgfoss.localdomain
-Email Address []:davidrg@davidrgfoss.com
 ```
 
 ## Genera una CSR para un servidor HTTPS que deberás montar con nginx
@@ -88,169 +51,162 @@ Email Address []:davidrg@davidrgfoss.com
 * Creamos la firma CSR con la CA que hemos creado en el paso anterior
 ```bash
 openssl ca -in /home/davidrg/CA/private/server.csr -out /home/davidrg/CA/certs/server.crt -days 365
-Using configuration from /usr/lib/ssl/openssl.cnf
-Enter pass phrase for /home/davidrg/CA/private/cakey.pem:
-Check that the request matches the signature
-Signature ok
-Certificate Details:
-        Serial Number: 1 (0x1)
-        Validity
-            Not Before: Jan 15 12:51:52 2024 GMT
-            Not After : Jan 14 12:51:52 2025 GMT
-        Subject:
-            countryName               = ES
-            stateOrProvinceName       = Sevilla
-            organizationName          = davidrgfoss
-            organizationalUnitName    = davidrgfoss
-            commonName                = davidrgfoss.localdomain
-            emailAddress              = davidrg@davidrgfoss.com
-        X509v3 extensions:
-            X509v3 Basic Constraints: 
-                CA:FALSE
-            X509v3 Subject Key Identifier: 
-                4B:62:D4:4F:BF:1C:EE:08:5A:5F:5D:68:80:A0:1C:FF:EC:C4:CB:25
-            X509v3 Authority Key Identifier: 
-                8C:D0:64:E1:1C:33:E3:A1:6C:E1:F1:58:2F:D6:5D:0E:FF:0C:C0:CD
-Certificate is to be certified until Jan 14 12:51:52 2025 GMT (365 days)
-Sign the certificate? [y/n]:y
-
-
-1 out of 1 certificate requests certified, commit? [y/n]y
-Write out database with 1 new entries
-Data Base Updated
 ```
 
 ## Configura el servidor nginx adecuadamente con la información proporcionada por la autoridad certificadora como respuesta a la CSR.
 
-* Fichero con el host configurado, tambien podemos modificar el `/etc/nginx/sites-available/default`.
+* Activamos el mod de ssl y activamos el sitio default con ssl.
 
 ```bash
-server {
-    # IPv4.
-    listen 80;
-    listen 443 ssl http2;
+a2dissite 000-default
+a2enmod ssl
+a2ensite default-ssl
+systemctl restart apache2
+```
 
-    # IPv6.
-    # listen [::]:80;
-    # listen [::]:443 ssl http2;
+* Fichero con el host configurado, tambien podemos modificar el `/etc/apache2/sites-available/default-ssl.conf`. Cambiando las lineas `SSLCertificateFile` y SSLCertificateKeyFile` añadiendo la ruta hacia las clave, en este caso quedaria asi:
 
-    server_name cifrado.davidrgfoss.com;
+```bash
+<VirtualHost *:443>
+	ServerAdmin webmaster@localhost
+	ServerName davidrgfoss.localdomain
+	DocumentRoot /var/www/html
 
-    access_log /var/log/nginx/example.com-access.log;
-    error_log /var/log/nginx/example.com-error.log;
+	# Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+	# error, crit, alert, emerg.
+	# It is also possible to configure the loglevel for particular
+	# modules, e.g.
+	#LogLevel info ssl:warn
 
-    ssl_certificate /home/davidrg/CA/certs/server.crt;
-    ssl_certificate_key /home/davidrg/CA/private/server.key;
-    root /var/www/cifrado;
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-    index index.php;
-	location / {
-		try_files $uri $uri/ /index.html;
-	}
-}
+	# For most configuration files from conf-available/, which are
+	# enabled or disabled at a global level, it is possible to
+	# include a line for only one particular virtual host. For example the
+	# following line enables the CGI configuration for this host only
+	# after it has been globally disabled with "a2disconf".
+	#Include conf-available/serve-cgi-bin.conf
+
+	#   SSL Engine Switch:
+	#   Enable/Disable SSL for this virtual host.
+	SSLEngine on
+
+	#   A self-signed (snakeoil) certificate can be created by installing
+	#   the ssl-cert package. See
+	#   /usr/share/doc/apache2/README.Debian.gz for more info.
+	#   If both key and certificate are stored in the same file, only the
+	#   SSLCertificateFile directive is needed.
+	SSLCertificateFile      /home/davidrg/CA/certs/server.crt
+	SSLCertificateKeyFile   /home/davidrg/CA/private/server.key
+
+	#   Server Certificate Chain:
+	#   Point SSLCertificateChainFile at a file containing the
+	#   concatenation of PEM encoded CA certificates which form the
+	#   certificate chain for the server certificate. Alternatively
+	#   the referenced file can be the same as SSLCertificateFile
+	#   when the CA certificates are directly appended to the server
+	#   certificate for convinience.
+	#SSLCertificateChainFile /etc/apache2/ssl.crt/server-ca.crt
+
+	#   Certificate Authority (CA):
+	#   Set the CA certificate verification path where to find CA
+	#   certificates for client authentication or alternatively one
+	#   huge file containing all of them (file must be PEM encoded)
+	#   Note: Inside SSLCACertificatePath you need hash symlinks
+	#	  to point to the certificate files. Use the provided
+	#	  Makefile to update the hash symlinks after changes.
+	#SSLCACertificatePath /etc/ssl/certs/
+	#SSLCACertificateFile /etc/apache2/ssl.crt/ca-bundle.crt
+
+	#   Certificate Revocation Lists (CRL):
+	#   Set the CA revocation path where to find CA CRLs for client
+	#   authentication or alternatively one huge file containing all
+	#   of them (file must be PEM encoded)
+	#   Note: Inside SSLCARevocationPath you need hash symlinks
+	#	  to point to the certificate files. Use the provided
+	#	  Makefile to update the hash symlinks after changes.
+	#SSLCARevocationPath /etc/apache2/ssl.crl/
+	#SSLCARevocationFile /etc/apache2/ssl.crl/ca-bundle.crl
+
+	#   Client Authentication (Type):
+	#   Client certificate verification type and depth.  Types are
+	#   none, optional, require and optional_no_ca.  Depth is a
+	#   number which specifies how deeply to verify the certificate
+	#   issuer chain before deciding the certificate is not valid.
+	#SSLVerifyClient require
+	#SSLVerifyDepth  10
+
+	#   SSL Engine Options:
+	#   Set various options for the SSL engine.
+	#   o FakeBasicAuth:
+	#    Translate the client X.509 into a Basic Authorisation.  This means that
+	#    the standard Auth/DBMAuth methods can be used for access control.  The
+	#    user name is the `one line' version of the client's X.509 certificate.
+	#    Note that no password is obtained from the user. Every entry in the user
+	#    file needs this password: `xxj31ZMTZzkVA'.
+	#   o ExportCertData:
+	#    This exports two additional environment variables: SSL_CLIENT_CERT and
+	#    SSL_SERVER_CERT. These contain the PEM-encoded certificates of the
+	#    server (always existing) and the client (only existing when client
+	#    authentication is used). This can be used to import the certificates
+	#    into CGI scripts.
+	#   o StdEnvVars:
+	#    This exports the standard SSL/TLS related `SSL_*' environment variables.
+	#    Per default this exportation is switched off for performance reasons,
+	#    because the extraction step is an expensive operation and is usually
+	#    useless for serving static content. So one usually enables the
+	#    exportation for CGI and SSI requests only.
+	#   o OptRenegotiate:
+	#    This enables optimized SSL connection renegotiation handling when SSL
+	#    directives are used in per-directory context.
+	#SSLOptions +FakeBasicAuth +ExportCertData +StrictRequire
+	<FilesMatch "\.(?:cgi|shtml|phtml|php)$">
+		SSLOptions +StdEnvVars
+	</FilesMatch>
+	<Directory /usr/lib/cgi-bin>
+		SSLOptions +StdEnvVars
+	</Directory>
+
+	#   SSL Protocol Adjustments:
+	#   The safe and default but still SSL/TLS standard compliant shutdown
+	#   approach is that mod_ssl sends the close notify alert but doesn't wait for
+	#   the close notify alert from client. When you need a different shutdown
+	#   approach you can use one of the following variables:
+	#   o ssl-unclean-shutdown:
+	#    This forces an unclean shutdown when the connection is closed, i.e. no
+	#    SSL close notify alert is send or allowed to received.  This violates
+	#    the SSL/TLS standard but is needed for some brain-dead browsers. Use
+	#    this when you receive I/O errors because of the standard approach where
+	#    mod_ssl sends the close notify alert.
+	#   o ssl-accurate-shutdown:
+	#    This forces an accurate shutdown when the connection is closed, i.e. a
+	#    SSL close notify alert is send and mod_ssl waits for the close notify
+	#    alert of the client. This is 100% SSL/TLS standard compliant, but in
+	#    practice often causes hanging connections with brain-dead browsers. Use
+	#    this only for browsers where you know that their SSL implementation
+	#    works correctly.
+	#   Notice: Most problems of broken clients are also related to the HTTP
+	#   keep-alive facility, so you usually additionally want to disable
+	#   keep-alive for those clients, too. Use variable "nokeepalive" for this.
+	#   Similarly, one has to force some clients to use HTTP/1.0 to workaround
+	#   their broken HTTP/1.1 implementation. Use variables "downgrade-1.0" and
+	#   "force-response-1.0" for this.
+	# BrowserMatch "MSIE [2-6]" \
+	#	nokeepalive ssl-unclean-shutdown \
+	#	downgrade-1.0 force-response-1.0
+
+</VirtualHost>
 ```
 
 ## Documenta el proceso completo con capturas de pantalla del día de hoy, demostrando que el servidor es accesible por HTTPS en el puerto 443 con su certificado recién firmado por la CA (Debes mostrar la fecha de creación del certificado). (6 puntos)
 
 * Aqui pondre algunas imagenes del proceso realizado como prueba que se realizo hoy.
 
-![generar servidor](./generandoserver.png)
+![generar servidor](./1.png)
 
-![generar csr](./gencsr.png)
+![generar csr](./11.png)
 
-# Operaciones con GPG y OpenSSL
+![comprobar cert](./111.png)
 
-## Crea un par de claves nuevo y sube tu clave pública al servidor de claves de Ubuntu o al del MIT. Adjunta captura que demuestre que la clave se ha subido correctamente en el día de hoy.
-
-* Crear clave con GPG
-```bash
-gpg --full-generate-key
-gpg (GnuPG) 2.2.27; Copyright (C) 2021 Free Software Foundation, Inc.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-
-Por favor seleccione tipo de clave deseado:
-   (1) RSA y RSA (por defecto)
-   (2) DSA y ElGamal
-   (3) DSA (sólo firmar)
-   (4) RSA (sólo firmar)
-  (14) Existing key from card
-Su elección: 1
-las claves RSA pueden tener entre 1024 y 4096 bits de longitud.
-¿De qué tamaño quiere la clave? (3072) 4096
-El tamaño requerido es de 4096 bits
-Por favor, especifique el período de validez de la clave.
-         0 = la clave nunca caduca
-      <n>  = la clave caduca en n días
-      <n>w = la clave caduca en n semanas
-      <n>m = la clave caduca en n meses
-      <n>y = la clave caduca en n años
-¿Validez de la clave (0)? 1y
-La clave caduca mar 14 ene 2025 12:59:44 CET
-¿Es correcto? (s/n) s
-
-GnuPG debe construir un ID de usuario para identificar su clave.
-
-Nombre y apellidos: David Rodriguez Garcia
-Dirección de correo electrónico: davidrg@davidrgfoss.com
-Comentario: Clave para el examen de cifrado
-Ha seleccionado este ID de usuario:
-    "David Rodriguez Garcia (Clave para el examen de cifrado) <davidrg@davidrgfoss.com>"
-
-¿Cambia (N)ombre, (C)omentario, (D)irección o (V)ale/(S)alir? V
-Es necesario generar muchos bytes aleatorios. Es una buena idea realizar
-alguna otra tarea (trabajar en otra ventana/consola, mover el ratón, usar
-la red y los discos) durante la generación de números primos. Esto da al
-generador de números aleatorios mayor oportunidad de recoger suficiente
-entropía.
-Es necesario generar muchos bytes aleatorios. Es una buena idea realizar
-alguna otra tarea (trabajar en otra ventana/consola, mover el ratón, usar
-la red y los discos) durante la generación de números primos. Esto da al
-generador de números aleatorios mayor oportunidad de recoger suficiente
-entropía.
-gpg: clave DA67A7D2098A2E53 marcada como de confianza absoluta
-gpg: certificado de revocación guardado como '/home/davidrg/.gnupg/openpgp-revocs.d/3C37F9E42B8B2E142ECFD88BDA67A7D2098A2E53.rev'
-claves pública y secreta creadas y firmadas.
-
-pub   rsa4096 2024-01-15 [SC] [caduca: 2025-01-14]
-      3C37F9E42B8B2E142ECFD88BDA67A7D2098A2E53
-uid                      David Rodriguez Garcia (Clave para el examen de cifrado) <davidrg@davidrgfoss.com>
-sub   rsa4096 2024-01-15 [E] [caduca: 2025-01-14]
-```
-* Subir clave al `keyserver` de `Ubuntu`
-
-```bash
-gpg --keyserver keyserver.ubuntu.com --send-keys 3C37F9E42B8B2E142ECFD88BDA67A7D2098A2E53
-gpg: enviando clave DA67A7D2098A2E53 a hkp://keyserver.ubuntu.com
-```
-* Captura de pantalla donde la clave se ve subida al servidor.
-
-![Clave subida](./keyserver-clave.png)
-
-## Manda un correo a raulpruebas21@gmail.com adjuntando tu clave pública recién creada como texto ASCII.
-
-* Exportar clave publica a un fichero ASCII
-```bash
-gpg -a --export 3C37F9E42B8B2E142ECFD88BDA67A7D2098A2E53 > david.asc
-```
-
-## Cifra un fichero de texto de forma simétrica con la clave “Shalamakuki” usando OpenSSL.
-
-* Creamos el fichero y lo ciframos
-```bash
-echo "hola mundo" > ej3.txt
-openssl enc -aes-256-cbc -salt -in ej3.txt -out ej3_cifrado.txt.enc -pass pass:Shalamakuki -pbkdf2
-```
-
-## Manda ese fichero como adjunto en un mensaje de correo electrónico cifrado y firmado por tí con el par de claves creado en este mismo ejercicio a la misma dirección anterior. En el texto del correo escribirás el comando usado para realizar el apartado c)
-
-* Exportamos clave privada para usarla en thunderbird
-```bash
-gpg --export-secret-keys 3C37F9E42B8B2E142ECFD88BDA67A7D2098A2E53 > davidrg.key
-```
-
-* Importamos la clave publica asociada al correo raulpruebas21@gmail.com
-```bash
-gpg --keyserver keyserver.ubuntu.com --recv-keys 3b677bf541cb4d92
-```
 
