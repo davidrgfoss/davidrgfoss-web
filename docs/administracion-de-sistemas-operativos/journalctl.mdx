@@ -1,0 +1,110 @@
+---
+sidebar_position: 8
+---
+
+# Implementación de un sistema de recolección de logs con `systemd-journal-remote` en un servidor de cloud
+
+## Requisitos
+
+Para implementar este sistema de recolección de logs, necesitarás:
+
+* Un servidor de cloud con un sistema operativo basado en Linux (Ubuntu 20.04, CentOS 8, etc.).
+* Conocimientos básicos de administración de sistemas y uso de la terminal.
+
+## Introducción
+
+En este artículo, veremos cómo configurar `systemd-journal-remote` para recolectar y centralizar logs en tu servidor de cloud. `systemd-journal-remote` es un paquete que permite recibir, procesar y almacenar logs desde otros sistemas que utilizan `systemd-journald`.
+
+## Instalación de `systemd-journal-remote`
+
+Primero, necesitamos instalar `systemd-journal-remote` en el servidor que actuará como el receptor de logs.
+
+### Ubuntu/Debian
+
+Actualizamos el índice de paquetes e instalamos el paquete:
+
+```bash
+sudo apt update
+sudo apt install systemd-journal-remote -y
+```
+
+### RHEL
+
+Actualizamos el índice de paquetes e instalamos el paquete:
+
+```bash
+sudo dnf install epel-release -y
+sudo dnf install systemd-journal-remote -y
+```
+
+### Habilitar y configurar los servicios
+
+Habilitamos y arrancamos los servicios `systemd-journal-remote` y `systemd-journal-gatewayd`:
+
+```bash
+sudo systemctl enable --now systemd-journal-remote
+sudo systemctl enable --now systemd-journal-gatewayd
+```
+
+:::tip Clientes
+En las maquinas que hacen de clientes se instala el mismo paquete tambien.
+:::
+
+### Configuración de `systemd-journal-remote`
+
+Editamos el archivo de configuración `/etc/systemd/journal-remote.conf` para ajustar los parámetros según nuestras necesidades. En este caso modificamos los siguientes valores:
+
+```conf
+[Remote]
+Seal=false
+SplitMode=host
+```
+1. **Deshabilitar la opción de "seal"**:
+   - La opción `Seal=false` desactiva la funcionalidad de sellado criptográfico de los logs. El sellado criptográfico (seal) es una característica de `systemd-journald` que añade una firma criptográfica a los logs para garantizar su integridad y detectar cualquier manipulación. Deshabilitar esta opción puede simplificar la configuración y el almacenamiento de logs, pero a costa de no tener la garantía de integridad que proporciona el sellado.
+
+2. **Configurar el modo de división de logs por host**:
+   - La opción `SplitMode=host` configura el servidor para almacenar los logs recibidos en directorios separados, organizados por el nombre del host de origen. Esto significa que los logs de cada máquina cliente se guardarán en un directorio distinto, lo cual facilita la identificación y el acceso a los logs de cada máquina específica. Esto es útil en entornos donde múltiples máquinas están enviando logs a un solo servidor central.
+
+Tambien podemos configurar una conexion basada en certificados, pero en este caso usaremos esta configuración basica.
+
+## Configuración del cliente
+
+Instalamos `systemd-journal-remote` en cada cliente que enviará los logs, como mencione anteriormente es le mismo paquete.
+
+### Configuración del servicio de envío
+
+Configuramos el servicio `systemd-journal-remote` en el cliente para enviar logs al servidor receptor. Editamos el archivo `/etc/systemd/journal-upload.conf`:
+
+```conf
+[Upload]
+URL=http://journals.davidrgfoss.com:19532
+```
+
+Reemplazamos `http://journals.davidrgfoss.com:19532` con la dirección IP o nombre del servidor de logs.
+
+:::danger
+El servicio intentara conectarse de forma predeterminada por https dando error, esto se puede desactivar cambiando `https` por `http` en la linea `ExecStart=/usr/lib/systemd/systemd-journal-remote --listen-https=-3 --output=/var/log/journal/remote/` del fichero `/usr/lib/systemd/system/systemd-journal-remote.service`
+:::
+
+### Habilitar y arrancar el servicio de envío
+
+```bash
+sudo systemctl enable systemd-journal-upload
+sudo systemctl start systemd-journal-upload
+```
+
+## Verificación
+
+Para verificar que los logs están siendo enviados y recibidos correctamente, podemos revisar los logs en el servidor receptor:
+
+```bash
+journalctl -D /var/log/journal/remote/
+```
+
+También podemos acceder a la interfaz web proporcionada por `systemd-journal-gatewayd` en `http://<IP_DEL_SERVIDOR_RECEPTOR>:19531`.
+
+![Prueba de funcionamiento journalctl](/img/journald/journals.png)
+
+## Conclusión
+
+Hemos configurado un sistema de recolección de logs utilizando `systemd-journal-remote`, permitiendo centralizar y gestionar logs desde múltiples sistemas en un servidor de cloud. Este enfoque facilita la monitorización y el análisis de logs en entornos distribuidos.
