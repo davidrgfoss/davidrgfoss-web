@@ -1,0 +1,236 @@
+---
+sidebar_position: 10
+---
+
+# Habilitación y Configuración de SELinux en Rocky Linux para Servicios Samba y NFS
+
+## Requisitos
+
+Para esta guía, necesitarás:
+
+* Un servidor basado en Rocky Linux.
+* Conocimientos básicos de administración de sistemas `Linux` y uso de la terminal.
+* Conocimientos básicos de SELinux y sus políticas.
+
+## Introducción
+
+En este artículo, veremos cómo habilitar SELinux en un servidor basado en Rocky Linux y configurar los servicios Samba y NFS para que funcionen correctamente bajo una configuración estricta y segura de SELinux. SELinux es una medida de seguridad que proporciona control de acceso obligatorio y ayuda a limitar el impacto de posibles vulnerabilidades.
+
+## Habilitar SELinux
+
+1. Verificar el Estado de SELinux
+
+```bash
+sestatus
+```
+
+2. Habilitar SELinux
+
+* Si SELinux no está habilitado, edita el archivo de configuración `/etc/selinux/config`:
+
+```bash
+sudo nano /etc/selinux/config
+```
+
+* Asegúrate de que las siguientes líneas estén configuradas así:
+
+```ini
+SELINUX=enforcing
+SELINUXTYPE=targeted
+```
+
+3. Activamos y reiniciamos para aplicar cambios
+
+* Activamos selinux para que se inicie con el sistema:
+
+```bash
+grubby --update-kernel ALL --remove-args selinux
+```
+
+* Reinicia el sistema para aplicar los cambios:
+
+```bash
+sudo reboot
+```
+
+* Después del reinicio, verifica nuevamente el estado de SELinux:
+
+```bash
+sestatus
+```
+
+## Configuración de Samba con SELinux
+
+1. Instalar y Configurar Samba
+
+* Instala el paquete de Samba:
+
+```bash
+sudo dnf install samba samba-client -y
+```
+
+* Edita el archivo de configuración `/etc/samba/smb.conf` para definir los recursos compartidos:
+
+```bash
+sudo vim /etc/samba/smb.conf
+```
+
+* Agregamos una sección para compartir un directorio
+
+```ini
+[public]
+   path = /srv/samba/public
+   browsable = yes
+   writable = yes
+   guest ok = no
+   read only = no
+   valid users = smbuser
+   create mask = 0777
+   directory mask = 0777
+```
+
+* Creamos el usuario `smbuser` y su contraseña.
+
+```bash
+adduser smbuser
+smbpasswd -a smbuser
+```
+
+* Creamos los directorios y le aplicamos permisos.
+
+```bash
+mkdir -p /srv/samba/public
+chown -R smbuser:smbuser /srv/samba/public
+chmod 750 /srv/samba/public
+```
+
+2. Configurar SELinux para Samba
+
+* Aplica el contexto de SELinux correcto al directorio compartido:
+
+```bash
+sudo semanage fcontext -a -t samba_share_t "/srv/samba/public(/.*)?"
+sudo restorecon -Rv /srv/samba/public
+```
+
+* Permite que Samba acceda a los recursos compartidos:
+
+```bash
+sudo setsebool -P samba_enable_home_dirs 1
+sudo setsebool -P samba_export_all_rw 1
+```
+
+3. Iniciar y Habilitar Samba
+
+```bash
+sudo systemctl enable --now smb
+```
+
+## Configuración de NFS con SELinux
+
+1. Instalar y Configurar NFS
+
+* Instala el paquete de NFS:
+
+```bash
+sudo dnf install nfs-utils -y
+```
+
+* Edita el archivo `/etc/exports` para definir los recursos compartidos:
+
+```bash
+sudo vim /etc/exports
+```
+
+* Agrega una línea para compartir un directorio:
+
+```ini
+/srv/nfs/share  *(rw,sync,root_squash,no_subtree_check)
+```
+
+2. Configurar SELinux para NFS
+
+* Aplica el contexto de SELinux correcto al directorio compartido:
+
+```bash
+sudo semanage fcontext -a -t nfs_t "/srv/nfs/share(/.*)?"
+sudo restorecon -Rv /srv/nfs/share
+```
+
+* Permite que NFS acceda a los recursos compartidos:
+
+```bash
+sudo setsebool -P nfs_export_all_rw 1
+sudo setsebool -P nfsd_anon_write 1
+```
+
+3. Iniciar y Habilitar NFS
+
+* Inicia y habilita los servicios de NFS:
+
+```bash
+sudo systemctl enable --now nfs-server
+```
+
+## Pruebas de Acceso
+
+Configuramos la red en las dos maquinas que vamos a usar.
+
+* Para la maquina con `Rocky 9` usamos este comando:
+
+```bash
+nmcli con add type ethernet ifname ens224 con-name ens224 autoconnect yes ip4 192.168.0.2/24 gw4 192.168.0.1
+```
+
+* Para el cliente ubuntu modificamos el fichero `/etc/netplan/00-Public_network.yaml` añadiendo la nueva interfaz:
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    ens192:
+      dhcp4: true
+      accept-ra: true
+    ens224:
+      dhcp4: no
+      addresses:
+       - 192.168.0.3/24
+```
+
+### Pruebas de Acceso a Samba
+
+* Desde el cliente, verificamos que se puede acceder al recurso compartido de Samba:
+
+```bash
+smbclient //192.168.0.2/public -U smbuser
+```
+
+### Pruebas de Acceso a NFS
+
+* Desde el cliente, montamos el recurso compartido NFS y verifica el acceso:
+
+```bash
+sudo mount -t nfs 192.168.0.2:/srv/nfs /mnt
+```
+
+* Verificamos que se puede leer y escribir en el directorio montado:
+
+```bash
+touch /mnt/prueba.txt
+```
+
+## SELinux
+
+SELinux define políticas que especifican cómo los procesos y usuarios pueden interactuar con los objetos del sistema (archivos, directorios, puertos de red, etc.). Esto ayuda a limitar el impacto de las vulnerabilidades, incluso si un proceso es comprometido.
+SELinux utiliza etiquetas para definir políticas de acceso. Cada objeto en el sistema tiene una etiqueta de seguridad (contexto) que SELinux usa para controlar el acceso. Las políticas de SELinux se configuran utilizando herramientas como `semanage` y `setsebool`.
+
+### Funcionameinto de SELinux
+
+Vamos a usar de base para este ejemplo lo que hemos hecho con nfs. Para configurar este servicio hemos usado `semanage fcontext -a -t nfs_t "/srv/nfs/share(/.*)?"`, este comando añade una regla a SELinux que dice que el directorio `/srv/nfs/share` y todos los archivos y subdirectorios dentro de él deben tener el contexto de tipo `nfs_t`. Luego hemos usado el comadno `restorecon -Rv /srv/nfs/share` para aplicar contextos de seguridad a archivos y directorios según las reglas definidas.
+
+Luego tambien hemos activado con el comando `setsebool` las opciones `nfs_export_all_rw` y `nfsd_anon_write` para permitir lectura y escritura en el directorio compartido y permitir usuarios anonimos respectivamente.
+
+## Conclusión
+
+Hemos habilitado y configurado SELinux en un servidor basado en Rocky Linux y asegurado que los servicios Samba y NFS funcionen correctamente bajo una configuración estricta y segura de SELinux. Esto mejora significativamente la seguridad del sistema, asegurando que solo los accesos autorizados sean permitidos.
+

@@ -1,0 +1,237 @@
+---
+sidebar_position: 13
+---
+
+# Configuración de Autenticación LDAP en Servidores Ubuntu 22.04 y Clientes Debian 12 y Rocky Linux 9
+
+## Introducción
+
+En este artículo, configuraremos un servidor LDAP con el nombre DNS `ldap.davidrgfoss.com` proporcionado por un DNS. Crearemos un usuario llamado `prueba` y configuraremos máquinas clientes basadas en Debian 12 y Rocky Linux 9 para que puedan autenticarse en el servidor LDAP utilizando este usuario.
+
+## Paso 1: Configuración del Servidor LDAP en Ubuntu 22.04
+
+### Instalación y Configuración en el Servidor LDAP
+
+1. **Instalar OpenLDAP y herramientas administrativas**:
+
+   ```bash
+   sudo apt update
+   sudo apt install slapd ldap-utils -y
+   ```
+
+2. **Reconfigurar OpenLDAP**:
+
+   ```bash
+   sudo dpkg-reconfigure slapd
+   ```
+
+   - Omite la configuración de DNS.
+   - Establece el dominio base como `dc=ldap,dc=davidrgfoss,dc=com`.
+   - Configura el nombre de la organización.
+   - Proporciona la contraseña del administrador LDAP.
+   - Acepta las configuraciones predeterminadas para los índices de base de datos y los módulos de LDAP.
+
+3. **Configurar el Dominio**:
+
+   Modifica el archivo de configuración para incluir el dominio `ldap.davidrgfoss.com`.
+
+   ```bash
+   sudo nano /etc/ldap/ldap.conf
+   ```
+
+   Asegúrate de incluir las siguientes líneas:
+
+   ```conf
+   BASE    dc=ldap,dc=davidrgfoss,dc=com
+   URI     ldap://ldap.davidrgfoss.com
+   ```
+
+4. **Agregar el Esquema de Organización**:
+
+   ```bash
+   sudo ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/ldap/schema/core.ldif
+   ```
+
+5. **Crear la Estructura Básica del Directorio**:
+
+   Crea un archivo `base.ldif` con el siguiente contenido:
+
+   ```ldif
+   dn: dc=ldap,dc=davidrgfoss,dc=com
+   objectClass: dcObject
+   objectClass: organization
+   o: davidrgfoss Company
+   dc: ldap
+
+   dn: cn=admin,dc=ldap,dc=davidrgfoss,dc=com
+   objectClass: organizationalRole
+   cn: admin
+   userPassword: {SSHA}<NUEVA_CONTRASEÑA>
+   description: LDAP Administrator
+   ```
+
+   Aplica la configuración:
+
+   ```bash
+   sudo ldapadd -x -D cn=admin,dc=ldap,dc=davidrgfoss,dc=com -W -f base.ldif
+   ```
+
+### Creación del Usuario `prueba`
+
+1. **Crear un Archivo LDIF para el Usuario**:
+
+   Crea un archivo `prueba.ldif` con el siguiente contenido:
+
+   ```ldif
+   dn: uid=prueba,dc=ldap,dc=davidrgfoss,dc=com
+   objectClass: inetOrgPerson
+   objectClass: posixAccount
+   objectClass: shadowAccount
+   uid: prueba
+   sn: Prueba
+   givenName: Usuario
+   cn: Usuario Prueba
+   displayName: Usuario Prueba
+   uidNumber: 10000
+   gidNumber: 10000
+   userPassword: {SSHA}<CifradorDeContraseña>
+   gecos: Usuario Prueba
+   loginShell: /bin/bash
+   homeDirectory: /home/prueba
+   ```
+
+   **Nota**: Genera una contraseña cifrada utilizando `slappasswd` y reemplaza `CifradorDeContraseña` con el valor generado.
+
+2. **Agregar el Usuario al Directorio LDAP**:
+
+   ```bash
+   sudo ldapadd -x -D cn=admin,dc=ldap,dc=davidrgfoss,dc=com -W -f prueba.ldif
+   ```
+
+## Paso 2: Configuración de la Máquina Cliente Debian 12
+
+### Instalación de Paquetes Necesarios
+
+1. **Instalar los Paquetes Necesarios**:
+
+   ```bash
+   sudo apt update
+   sudo apt install libnss-ldap libpam-ldap ldap-utils -y
+   ```
+
+2. **Configuración del Cliente LDAP**:
+
+   Durante la instalación, se te pedirá que ingreses la URI del servidor LDAP y el DN base. Utiliza `ldap://ldap.davidrgfoss.com` y `dc=ldap,dc=davidrgfoss,dc=com`.
+
+3. **Configurar la Autenticación LDAP**:
+
+   Edita el archivo `/etc/nsswitch.conf` para incluir LDAP:
+
+   ```bash
+   sudo nano /etc/nsswitch.conf
+   ```
+
+   Asegúrate de que las líneas de `passwd`, `group` y `shadow` incluyan `ldap`:
+
+   ```conf
+   passwd:         compat ldap
+   group:          compat ldap
+   shadow:         compat ldap
+   ```
+
+4. **Configurar PAM para LDAP**:
+
+   Edita el archivo `/etc/pam.d/common-password`:
+
+   ```bash
+   sudo nano /etc/pam.d/common-password
+   ```
+
+   Añade la siguiente línea:
+
+   ```conf
+   password    [success=1 user_unknown=ignore default=die]     pam_ldap.so
+   ```
+
+5. **Probar la Autenticación LDAP**:
+
+   Intenta iniciar sesión con el usuario `prueba`:
+
+   ```bash
+   su - prueba
+   ```
+
+## Paso 3: Configuración de la Máquina Cliente Rocky Linux 9
+
+### Instalación de Paquetes Necesarios
+
+1. **Instalar los Paquetes Necesarios**:
+
+   ```bash
+   sudo dnf install openldap-clients nss-pam-ldapd -y
+   ```
+
+2. **Configuración del Cliente LDAP**:
+
+   Configura el archivo `/etc/nslcd.conf` para apuntar al servidor LDAP:
+
+   ```bash
+   sudo vim /etc/nslcd.conf
+   ```
+
+   Asegúrate de incluir:
+
+   ```conf
+   uri ldap://ldap.davidrgfoss.com/
+   base dc=ldap,dc=davidrgfoss,dc=com
+   ```
+
+3. **Configurar `nsswitch.conf`**:
+
+   Edita el archivo `/etc/nsswitch.conf` para incluir LDAP:
+
+   ```bash
+   sudo vim /etc/nsswitch.conf
+   ```
+
+   Asegúrate de que las líneas de `passwd`, `group` y `shadow` incluyan `ldap`:
+
+   ```conf
+   passwd:     files ldap
+   group:      files ldap
+   shadow:     files ldap
+   ```
+
+4. **Habilitar e Iniciar el Servicio `nslcd`**:
+
+   ```bash
+   sudo systemctl enable nslcd
+   sudo systemctl start nslcd
+   ```
+
+5. **Configurar PAM para LDAP**:
+
+   Edita el archivo `/etc/pam.d/password-auth` y `/etc/pam.d/system-auth`:
+
+   ```bash
+   sudo vim /etc/pam.d/password-auth
+   sudo vim /etc/pam.d/system-auth
+   ```
+
+   Añade la siguiente línea en ambos archivos:
+
+   ```conf
+   auth        sufficient    pam_ldap.so
+   account     sufficient    pam_ldap.so
+   password    sufficient    pam_ldap.so
+   session     optional      pam_ldap.so
+   ```
+
+6. **Probar la Autenticación LDAP**:
+
+   Intenta iniciar sesión con el usuario `prueba`:
+
+   ```bash
+   su - prueba
+   ```
+
