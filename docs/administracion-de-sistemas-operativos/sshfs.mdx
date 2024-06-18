@@ -1,0 +1,189 @@
+---
+sidebar_position: 11
+---
+
+# Configuración de SSHFS en el Cloud con Montaje Automático y Validación por Clave Pública/Privada
+
+## Requisitos
+
+Para esta práctica, necesitarás:
+
+* Dos instancias basadas en Ubuntu Server 24.04 en el cloud.
+* Un volumen adicional de 2GB que será anexado a la instancia del servidor.
+
+## Introducción
+
+En este artículo, configuraremos dos instancias en el cloud. Una de ellas actuará como servidor, donde anexaremos un volumen de 2GB. Configuraremos SSHFS para permitir que la instancia cliente monte el sistema de archivos remoto usando SSHFS y systemd. La validación del usuario se realizará mediante claves públicas y privadas. Cubriremos las siguientes configuraciones:
+
+1. Montaje manual del sistema de archivos remoto.
+2. Montaje automático mediante `/etc/fstab`.
+3. Montaje automático mediante fichero de unidad `.mount`.
+4. Montaje automático mediante fichero de unidad `.automount` para montaje bajo demanda.
+
+## Paso 1: Preparación del Entorno
+
+### En la Instancia del Servidor
+
+1. **Anexar el Volumen de 2GB**:
+
+   Asumiendo que el volumen adicional está anexado como `/dev/sdb`, primero crearemos una particion y un sistema de ficheros en él:
+
+   ```bash
+   sudo fdisk /dev/sdb
+   sudo mkfs.ext4 /dev/sdb1
+   ```
+
+2. **Crea un punto de montaje y monta el volumen:**
+
+   ```bash
+   sudo mkdir -p /mnt/data
+   sudo mount /dev/sdb1 /mnt/data
+   sudo chown -R $USER:$USER /mnt/data
+   ```
+
+3. **Configuramos el montaje en  `/etc/fstab` para que sea permanente:**
+
+  ```bash
+  /dev/sdb1 /mnt/data ext4 defaults 0 1
+  ```
+
+4. **Instala el servidor SSH si no está ya instalado:**:
+
+   ```bash
+   sudo apt update
+   sudo apt install openssh-server -y
+   ```
+
+### En la Instancia del Cliente
+
+1. **Instalar SSHFS**:
+
+   ```bash
+   sudo apt update
+   sudo apt install sshfs -y
+   ```
+
+2. **Generar Clave SSH**:
+
+   Si no tienes una clave SSH, genera una:
+
+   ```bash
+   ssh-keygen
+   ```
+
+   Copia la clave pública al servidor:
+
+   ```bash
+   ssh-copy-id username@server_ip
+   ```
+
+## 2. Montaje Manual del Sistema de Archivos Remoto
+
+1. **Crear el Punto de Montaje en el Cliente**:
+
+   ```bash
+   mkdir -p /mnt/server_data
+   ```
+
+2. **Montar el Sistema de Archivos con SSHFS**:
+
+   ```bash
+   sshfs username@server_ip:/mnt/data /mnt/server_data
+   ```
+
+3. **Verificar el Montaje**:
+
+   ```bash
+   ls /mnt/server_data
+   ```
+
+## 3. Montaje Automático mediante `/etc/fstab`
+
+1. **Editar `/etc/fstab` en el Cliente**:
+
+   Abre el archivo `/etc/fstab` y añade la siguiente línea:
+
+   ```bash
+   root@82.223.23.121:/mnt/data /mnt/server_data fuse.sshfs defaults,_netdev,users,idmap=user,identityfile=/root/.ssh/id_rsa,allow_other 0 0
+   ```
+
+2. **Montar el Sistema de Archivos**:
+
+   ```bash
+   sudo mount -a
+   ```
+
+3. **Verificar el Montaje**:
+
+   ```bash
+   ls /mnt/server_data
+   ```
+
+## 4. Montaje Automático mediante Fichero de Unidad `.mount`
+
+1. **Crear un Fichero de Unidad `.mount`**:
+
+   Crea un archivo de unidad en `/etc/systemd/system` llamado `mntserver_data.mount`:
+
+   ```ini
+   [Unit]
+   Description=Mount SSHFS Filesystem
+
+   [Mount]
+   What=username@server_ip:/mnt/data
+   Where=/mnt/server_data
+   Type=fuse.sshfs
+   Options=defaults,_netdev,users,idmap=user,identityfile=/root/.ssh/id_ed25519,allow_other
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+2. **Recargar systemd y Habilitar la Unidad**:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable mntserver_data.mount
+   sudo systemctl start mntserver_data.mount
+   ```
+
+3. **Verificar el Montaje**:
+
+   ```bash
+   ls /mnt/server_data
+   ```
+
+## 5. Montaje Automático con Unidad `.automount`
+
+1. **Crear un Fichero de Unidad `.automount`**:
+
+   Crea un archivo de unidad en `/etc/systemd/system` llamado `mnt-server_data.automount`:
+
+   ```ini
+   [Unit]
+   Description=Automount SSHFS Filesystem
+
+   [Automount]
+   Where=/home/username/mnt/server_data
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+2. **Recargar systemd y Habilitar las Unidades**:
+
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable mnt-server_data.automount
+   sudo systemctl start mnt-server_data.automount
+   ```
+
+3. **Verificar el Montaje Bajo Demanda**:
+
+   Accede al punto de montaje para activarlo:
+
+   ```bash
+   ls /mnt/server_data
+   ```
+
+   Después de un tiempo de inactividad, el sistema de archivos debería desmontarse automáticamente.

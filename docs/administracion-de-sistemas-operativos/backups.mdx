@@ -1,0 +1,248 @@
+---
+sidebar_position: 12
+---
+
+# Implementación de un Sistema de Copias de Seguridad en el Cloud con Bacula
+
+## Requisitos
+
+Para esta práctica, necesitarás:
+
+* Dos instancias basadas en Ubuntu Server 24.04 en el cloud.
+* Un volumen adicional de almacenamiento para la instancia que actuará como servidor de copias de seguridad.
+* Conocimientos básicos de administración de sistemas y uso de la terminal.
+
+## Introducción
+
+En este artículo, configuraremos un sistema de copias de seguridad utilizando Bacula, con una de las instancias en el cloud como servidor de copias de seguridad. El proceso será completamente automático, almacenando las copias en un volumen adicional y utilizando claves públicas y privadas para la autenticación. Implementaremos copias completas semanales y diferenciales diarias, y un plan de almacenamiento a largo plazo. Además, se cifrarán los datos críticos y se almacenarán en una ubicación secundaria.
+
+## Paso 1: Preparación del Entorno
+
+### En la Instancia del Servidor
+
+1. **Anexar el Volumen de Almacenamiento**:
+
+   Asumiendo que el volumen adicional está anexado como `/dev/sdb`.
+
+2. **Crear una Tabla de Particiones y Formatear el Volumen**:
+
+   Utiliza `fdisk` para crear una nueva partición en el volumen:
+
+   ```bash
+   sudo fdisk /dev/sdb
+   ```
+
+   En el shell de `fdisk`, realiza los siguientes pasos:
+   - Presiona `n` para crear una nueva partición.
+   - Presiona `p` para elegir una partición primaria.
+   - Presiona `1` para elegir el número de partición.
+   - Presiona `Enter` para aceptar el valor predeterminado del primer sector.
+   - Presiona `Enter` nuevamente para aceptar el valor predeterminado del último sector.
+   - Presiona `w` para escribir la tabla de particiones y salir.
+
+   Luego, formatea la partición recién creada:
+
+   ```bash
+   sudo mkfs.ext4 /dev/sdb1
+   ```
+
+3. **Montar el Volumen**:
+
+   Crea un punto de montaje y monta el volumen:
+
+   ```bash
+   sudo mkdir -p /mnt/backups
+   sudo mount /dev/sdb1 /mnt/backups
+   sudo chown -R $USER:$USER /mnt/backups
+   ```
+
+### En la Instancia del Cliente
+
+1. **Instalar Bacula en el Servidor**:
+
+   ```bash
+   sudo apt update
+   sudo apt install bacula-server -y
+   ```
+
+2. **Instalar Bacula en el Cliente**:
+
+   ```bash
+   sudo apt update
+   sudo apt install bacula-client -y
+   ```
+
+## Paso 2: Configuración de Bacula
+
+### En el Servidor
+
+1. **Configurar el Directorio de Almacenamiento**:
+
+   Edita el archivo `/etc/bacula/bacula-sd.conf` y configura el dispositivo de almacenamiento:
+
+   ```bash
+   sudo nano /etc/bacula/bacula-sd.conf
+   ```
+
+   Cambia las rutas de los dispositivos de archivo para que apunten a los directorios adecuados en `/mnt/backups` y actualiza `SDAddress` para que apunte a la IP del servidor.
+
+   [**`bacula-sd.conf`**](/docs/Backups/bacula-sd.conf)
+
+2. **Configurar el Director**:
+
+   Edita el archivo `/etc/bacula/bacula-dir.conf` y configura los recursos de cliente y trabajos:
+
+   ```bash
+   sudo nano /etc/bacula/bacula-dir.conf
+   ```
+
+   [**`bacula-dir.conf`**](/docs/Backups/bacula-dir.conf)
+
+
+3. **Configurar el Cliente**:
+
+   Edita el archivo `/etc/bacula/bacula-fd.conf` en el cliente:
+
+   ```bash
+   sudo nano /etc/bacula/bacula-fd.conf
+   ```
+
+   [**`bacula-fd.conf`**](/docs/Backups/bacula-fd.conf)
+
+### Cambios Realizados
+
+1. **Dirección del Storage Daemon (`SDAddress`)**:
+   - Cambié `SDAddress` a `192.168.0.10` para que el Storage Daemon escuche en la dirección correcta.
+
+2. **Configuración del Director Permitido**:
+   - La sección `Director` ya estaba configurada correctamente, solo aseguré que los nombres y las contraseñas eran las correctas.
+
+3. **Directores Permitidos para Monitoreo**:
+   - Revise que el director para monitoreo esté configurado correctamente.
+
+4. **Configuración de Dispositivos y Autochanger**:
+   - Actualicé las rutas de los dispositivos de archivo para que apunten a los directorios adecuados en `/mnt/backups` (asegúrate de crear estos directorios o ajustarlos según tu entorno).
+
+5. **Mensajes**:
+   - Configuré la sección de mensajes para enviar todos los mensajes al director en `192.168.0.10`.
+
+6. **Clientes y Passwords**:
+   - Configuré el cliente `bacula-cliente-fd` con la dirección IP `192.168.0.11` y la contraseña correcta.
+
+### Reiniciar Servicios
+
+Después de realizar estos cambios, reinicia los servicios de Bacula en ambas instancias:
+
+En el servidor:
+```bash
+sudo systemctl restart bacula-director
+sudo systemctl restart bacula-sd
+```
+
+En el cliente:
+```bash
+sudo systemctl restart bacula-fd
+```
+
+### Configuración del Cifrado
+
+1. **Generar Claves de Cifrado**:
+
+   En el servidor, genera una clave GPG:
+
+   ```bash
+   gpg --gen-key
+   ```
+
+   Exporta la clave pública:
+
+   ```bash
+   gpg --export --armor "ID" > /etc/bacula/bacula_gpg.pub
+   ```
+
+2. **Cifrar Datos Críticos**:
+
+   Edita el archivo `/etc/bacula/bacula-dir.conf` para incluir la configuración del cifrado:
+
+   ```conf
+   FileSet {
+     Name = "CriticalData"
+     Include {
+       Options {
+         signature = MD5
+         compression = GZIP
+         encryption = GPG
+         GPGKey = /etc/bacula/bacula_gpg.pub
+       }
+       File = /home/username/critical_data
+     }
+   }
+   ```
+
+### Configuración de Cron para Limpieza Automática
+
+1. **Script de Limpieza**:
+
+   **limpieza_copias.sh:**
+
+   ```bash
+   #!/bin/bash
+   find /mnt/backups -type f -mtime +30 -exec rm {} \;
+   ```
+
+   Guarda el script en `/usr/local/bin` y hazlo ejecutable:
+
+   ```bash
+   sudo mv limpieza_copias.sh /usr/local/bin/
+   sudo chmod +x /usr/local/bin/limpieza_copias.sh
+   ```
+
+2. **Añadir Entrada en Cron**:
+
+   Edita el crontab del usuario root:
+
+   ```bash
+   sudo crontab -e
+   ```
+
+   Añade la siguiente línea para ejecutar el script de limpieza cada domingo a las 1:00 AM:
+
+   ```bash
+   0 1 * * 0 /usr/local/bin/limpieza_copias.sh
+   ```
+
+### Sincronización con Ubicación Secundaria
+
+1. **Configurar `rsync`**:
+
+   **sync_remoto.sh:**
+
+   ```bash
+   #!/bin/bash
+   rsync -avz /mnt/backups/ username@remote_server:/path/to/remote/backups/
+   ```
+
+   Guarda el script en `/usr/local/bin` y hazlo ejecutable:
+
+   ```bash
+   sudo mv sync_remoto.sh /usr/local/bin/
+   sudo chmod +x /usr/local/bin/sync_remoto.sh
+   ```
+
+2. **Añadir Entrada en Cron**:
+
+   Edita el crontab del usuario root:
+
+   ```bash
+   sudo crontab -e
+   ```
+
+   Añade la siguiente línea para ejecutar el script de sincronización cada domingo a las 3:00 AM:
+
+   ```bash
+   0 3 * * 0 /usr/local/bin/sync_remoto.sh
+   ```
+
+## Conclusión
+
+Hemos configurado un sistema de copias de seguridad automático utilizando Bacula para las instancias en el cloud, cumpliendo con todos los requisitos especificados. Implementamos copias completas semanales y diferenciales diarias, almacenamiento cifrado para datos críticos, y sincronización con una ubicación secundaria. Esta configuración asegura que los datos estén protegidos y sean recuperables en caso de pérdida.

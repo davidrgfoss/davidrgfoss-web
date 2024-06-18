@@ -1,0 +1,140 @@
+---
+sidebar_position: 9
+---
+
+# Configuración de una instancia sin `systemd` utilizando `SystemV`
+
+## Requisitos
+
+Para esta práctica, necesitarás un entorno con las siguientes características:
+
+* Un servidor Debian (preferiblemente Debian 9 o anterior).
+* Conocimientos básicos de administración de sistemas `Linux` y uso de la terminal.
+
+
+## Introducción
+
+En esta práctica, veremos cómo desinstalar `systemd` e instalar `SystemV` en una instancia Debian. `SystemV` es un sistema de inicio tradicional que fue ampliamente utilizado antes de la adopción de `systemd` por parte de la comunidad Debian.
+
+## Desinstalación de `systemd` e Instalación de `SystemV`
+
+### Paso 1: Preparación del Entorno
+
+Antes de desinstalar `systemd`, es importante asegurarse de que el sistema pueda arrancar correctamente con `SystemV`. Primero, instalaremos `sysvinit` y sus componentes necesarios.
+
+```bash
+sudo apt update
+sudo apt install sysvinit-core sysvinit-utils sysv-rc -y
+```
+
+### Paso 2: Configuración de `SystemV`
+
+Una vez que `systemd` se ha eliminado, debemos asegurarnos de que el sistema esté configurado para utilizar `SystemV` en el siguiente arranque. Para ello, actualizamos los scripts de inicio:
+
+```bash
+sudo update-rc.d -f rc.local remove
+sudo update-rc.d -f rc.local defaults
+```
+
+### Paso 3: Configuración del Arranque
+
+Editamos el archivo `/etc/inittab` para asegurarnos de que `SystemV` esté configurado correctamente. Añade o ajusta las siguientes líneas según sea necesario:
+
+```conf
+id:2:initdefault:
+
+# SystemV runlevels
+si::sysinit:/etc/init.d/rcS
+l0:0:wait:/etc/init.d/rc 0
+l1:1:wait:/etc/init.d/rc 1
+l2:2:wait:/etc/init.d/rc 2
+l3:3:wait:/etc/init.d/rc 3
+l4:4:wait:/etc/init.d/rc 4
+l5:5:wait:/etc/init.d/rc 5
+l6:6:wait:/etc/init.d/rc 6
+```
+
+Reiniciamos la maquina en este punto.
+
+### Paso 4: Comprobamos que la maquina esta siendo gestionada por sysv.
+
+Para verificar que el sistema está utilizando `SystemV` en lugar de `systemd`, puedes ejecutar el siguiente comando:
+
+```bash
+ps -p 1 -o comm=
+```
+
+### Paso 5: Desinstalación de `systemd`
+
+Para desinstalar `systemd` y evitar que se reinstale automáticamente, utilizamos el siguiente comando:
+
+```bash
+sudo apt remove --purge --auto-remove systemd
+```
+
+# Funcionalidades asociadas a systemd
+
+Una vez eliminado `systemd` tendremos el problema de que hemos perdidos funcionalidades, esto se debe a que a dia de hoy `systemd` es un gestor de sistema enorme con cada vez mas funciones algo contrario a la filosofia de `Linux` donde cada paquete programa debe hacer una funcion pequeña y de forma correcta. En este caso usare de ejemplo la funcion de `systemd-logind` que sera sustituida por el paquete `elogind`.
+
+## Funcionalidades de `elogind`
+
+1. **Gestión de sesiones**: `elogind` rastrea sesiones de usuario, gestionando el acceso y el uso de dispositivos por parte de usuarios.
+2. **Gestión de dispositivos**: Controla el acceso de dispositivos de entrada (teclado, ratón) y de salida (pantallas, audio) entre diferentes sesiones.
+3. **Gestión de energía**: Permite acciones como apagar, reiniciar y suspender el sistema de forma controlada y segura.
+4. **Manejo de permisos de dispositivos**: Ajusta los permisos de los dispositivos para que solo las sesiones activas puedan acceder a ellos.
+
+## ¿Por qué usar `elogind`?
+
+1. **Independencia de `systemd`**: Permite utilizar funcionalidades avanzadas de gestión de sesiones y energía sin tener que adoptar `systemd` como sistema de inicio.
+2. **Compatibilidad**: Facilita la compatibilidad de aplicaciones y entornos de escritorio modernos que dependen de `logind` para gestionar sesiones de usuario y energía.
+3. **Flexibilidad**: Ideal para sistemas que utilizan otros sistemas de inicio como `SystemV`, `OpenRC`, `runit`, entre otros.
+
+### Instalación y Configuración de `elogind`
+
+1. **Instalación**:
+
+   ```bash
+   sudo apt update
+   sudo apt install elogind
+   ```
+
+2. **Habilitar y arrancar `elogind`**:
+
+   ```bash
+   sudo update-rc.d elogind defaults
+   sudo service elogind start
+   ```
+
+3. **Verificación del servicio**:
+
+   ```bash
+   sudo service elogind status
+   ```
+
+## Ejemplo de Uso
+
+### Comandos de gestión de energía
+
+Una vez `elogind` esté en funcionamiento, puedes utilizar comandos para gestionar la energía del sistema. Por ejemplo, para apagar el sistema:
+
+```bash
+loginctl poweroff
+```
+
+O para reiniciar el sistema:
+
+```bash
+loginctl reboot
+```
+
+### Listar sesiones
+
+Puedes listar todas las sesiones activas en el sistema con:
+
+```bash
+loginctl list-sessions
+```
+
+## Conclusión
+
+Hemos visto cómo desinstalar `systemd` e instalar `SystemV` en un sistema Debian. Este proceso implica asegurarse de que los paquetes y servicios necesarios estén configurados para funcionar con `SystemV`. Este enfoque es para tener entornos donde se prefiere o se requiere el uso de sistemas de inicio tradicionales. En la practica esto no tiene ninguna utilidad y se pierde mas de loq ue se gana.
