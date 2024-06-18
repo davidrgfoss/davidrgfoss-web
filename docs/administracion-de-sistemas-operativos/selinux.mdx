@@ -205,6 +205,11 @@ network:
 smbclient //192.168.0.2/public -U smbuser
 ```
 
+* Tambien podemos montar la unidad con el comando (asegurate de que existe el directorio de destino local):
+```bash
+mount -t cifs -o username=smbuser,password=1 //192.168.0.2/public /mnt/samba/public
+```
+
 ### Pruebas de Acceso a NFS
 
 * Desde el cliente, montamos el recurso compartido NFS y verifica el acceso:
