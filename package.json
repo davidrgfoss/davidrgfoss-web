@@ -51,5 +51,5 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.5.2",
     "@docusaurus/types": "^3.5.2"
-  },
+  }
 }
