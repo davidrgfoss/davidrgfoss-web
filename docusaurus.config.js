@@ -106,14 +106,14 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       algolia: {
-      apiKey: '059ea2c29239c71abcdb0713fa265492',
+      apiKey: '3da8e8ff6eba30295770b743d319a233',
       indexName: 'davidrgfoss',
 
       // Optional: see doc section below
       contextualSearch: true,
 
       // Optional: see doc section below
-      appId: '2AY2P0EYAT',
+      appId: 'MEUBDLA2H4',
 
       // Optional: Algolia search parameters
       searchParameters: {},
