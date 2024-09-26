@@ -106,7 +106,7 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       algolia: {
-      apiKey: '3da8e8ff6eba30295770b743d319a233',
+      apiKey: '6090c7ca1dd724ed02a9d58ea222bad4',
       indexName: 'davidrgfoss',
 
       // Optional: see doc section below
