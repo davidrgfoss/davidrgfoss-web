@@ -1,6 +1,6 @@
 # Descripción
 
-En este proyecto intento plasmar los conocimientos que tengo en el campo de la informática/programación/administración. La idea es hacer tutoriales o guías, para poder configurar diferentes herramientas o tecnologías, de esta forma poder ayudar a personas que estén en una situación de querer resolver algo y no poder por falta de documentación en español o fiable.aa
+En este proyecto intento plasmar los conocimientos que tengo en el campo de la informática/programación/administración.
 
 ## Estado de la página
 
